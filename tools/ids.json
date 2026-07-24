@@ -1,0 +1,128 @@
+{
+  "tplFolder": {
+    "id": "3394e504-33cb-4a9d-9cca-556a25e313a4",
+    "rev": "72aba19d-f081-4ecc-8a64-30fd9a27ebce",
+    "srev": "940f491a-0a75-4910-8f06-d80c03b219d6",
+    "urev": "f4032868-a364-4b10-9a1d-93a5548a0c7d"
+  },
+  "table": {
+    "id": "79753cee-5aab-4a88-912b-821a4c3290d2",
+    "rev": "4b0f70bb-65c9-4487-90d9-3cf8adc97c84",
+    "srev": "583058ad-80c1-4d10-ba7a-6c3852152bbe",
+    "urev": "3c606897-a4e2-40c6-92bd-e13b4c6022b1"
+  },
+  "tableSection": {
+    "id": "eb81ebc6-3cf8-4740-bb12-2de100cd4a92",
+    "rev": "7fb595fc-7ed2-40a6-9944-74a65e14b8bc",
+    "srev": "26efda7b-7ce5-42a8-b44b-1bad58e55b26",
+    "urev": "ce1e2c27-cf88-4b6d-89da-3f658f00b16b"
+  },
+  "fTitle": {
+    "id": "0722416b-a9f8-4e4e-a5c6-78dc57877e3c",
+    "rev": "dd8ac6e9-5b3c-4eaa-9433-645c6d9d0bcf",
+    "srev": "b76db280-41b3-4e7a-8708-af072d42fa15",
+    "urev": "da48811a-dddc-49dd-8461-0a1dab232550"
+  },
+  "fCaption": {
+    "id": "4f40bd74-77b6-4632-a933-0ae1f71a5f7d",
+    "rev": "75567a9f-4d44-4a87-8a22-ea593ef28c38",
+    "srev": "6c7cc658-fc5a-41c7-9543-279e0bece748",
+    "urev": "caa8b54b-c6fc-4cf2-9d82-29fc7e61c546"
+  },
+  "tableSV": {
+    "id": "9fa8cab2-a819-40c5-9126-2d4896cdbc94",
+    "rev": "6ee5ee26-7964-478f-9a6f-92dfb6221355",
+    "srev": "a06368b5-5507-40fa-bd73-973145962b2a",
+    "urev": "2f863fc4-56bb-49ba-9cc4-b0eb2f9d1588"
+  },
+  "row": {
+    "id": "e78269af-2808-4eb3-acaf-3a0d6d5ea50e",
+    "rev": "03aa9ed9-5fd2-466b-adbb-321ae2683ede",
+    "srev": "8a8a2e3b-98b7-404c-8812-3dbfd992cbcc",
+    "urev": "51df4119-cd03-4595-ab1d-f5045a486f18"
+  },
+  "rowSV": {
+    "id": "a67ba32c-6661-41fa-8825-9100f5fcba62",
+    "rev": "11afbe50-7b92-4cdc-9485-8179d9f9fd6f",
+    "srev": "acadbc71-2384-40dc-890b-329fa97118ac",
+    "urev": "175fafbd-1d1c-4d35-817b-b1257f21b4c8"
+  },
+  "cell": {
+    "id": "4ece0f49-edb9-4d4b-b739-8ba4dadeec61",
+    "rev": "028ff8ca-d508-44a5-bbee-9eb3ef8dd15a",
+    "srev": "2dd5c8c8-8fa1-47ff-8eec-afcc5b031b70",
+    "urev": "d7ad3aa0-9936-4eb0-ba2b-cd8893f32998"
+  },
+  "cellSection": {
+    "id": "09c9a043-3f59-4df4-a3dc-144957de92ab",
+    "rev": "3e6108ca-c4ae-446d-b6f0-dee648d63c5a",
+    "srev": "2469434c-d3de-45ec-9d1b-62a62d2e6944",
+    "urev": "a41e2d91-ba5a-4064-a5e2-760a5340f2ba"
+  },
+  "fCellContent": {
+    "id": "01610b92-2e3d-4b68-a8a8-bb54aebeb53d",
+    "rev": "3b85482f-30e3-4a81-b7c3-5fa0976a0b52",
+    "srev": "07867744-86fd-4e8e-bac6-b5f5c15fb51e",
+    "urev": "67a43d9f-b2ce-456a-9e1d-2a3053db30ce"
+  },
+  "folderTemplate": {
+    "id": "b260ba5e-451f-4a25-9ee1-e12ffb3fc967",
+    "rev": "765e226c-ed4e-44de-a997-3e92287aa6c3",
+    "srev": "280e4e1d-dbb0-4337-9f7b-aea0c211da42",
+    "urev": "7c2ed3b8-7dd3-45e4-b54d-33ddf8c1f348"
+  },
+  "folderTemplateSV": {
+    "id": "1f9e8ce4-5490-40f8-ab68-b6868de549ef",
+    "rev": "f90c8c65-94c9-487d-89be-8d5057060057",
+    "srev": "27cb99c8-d077-4726-a526-6077a4dd45db",
+    "urev": "c192644e-447c-40cc-b9c2-f3769397c76b"
+  },
+  "paramsFolder": {
+    "id": "c53fac0c-1462-419f-88a4-1c8f682dc963",
+    "rev": "cffec967-719d-4c19-94a5-8713b4bb28d5",
+    "srev": "ae35690a-5194-49cb-9a9c-3f5caba9358b",
+    "urev": "e7f00d42-4822-4c85-993e-4176439a8a67"
+  },
+  "params": {
+    "id": "4cd139b8-b6bd-49b9-93b6-6d4df874c542",
+    "rev": "d2f2a6e8-67e5-45a2-a0a0-a8326ba96cc9",
+    "srev": "d5979a7e-13be-4afb-867e-bd101a321144",
+    "urev": "1e2050c9-49a4-4e9f-93c8-b71f8014e1fc"
+  },
+  "paramsSection": {
+    "id": "423a9a4a-a679-4b32-a052-0ecf095179ce",
+    "rev": "5fa3efac-c775-4ca6-be5a-2f99822cb142",
+    "srev": "f9fd56f0-5c95-4dad-8b13-7630027d99b6",
+    "urev": "12cf3dea-f411-4372-aefa-b79d81fd35e7"
+  },
+  "pFirstRowIsHeader": {
+    "id": "be1de485-d618-475a-b76f-7d27c8f0bafd",
+    "rev": "bc564224-5ae1-4f54-a4dd-9fb91a9be30a",
+    "srev": "1bdab1c0-9854-477a-bfcf-1e8f1d5382b3",
+    "urev": "be3f875e-569e-492d-a4ef-aea2065a4a7c"
+  },
+  "pStriped": {
+    "id": "781d8b82-c0e9-487d-ae13-ec4a5907e9b2",
+    "rev": "a24e0f62-0606-4ef8-9187-06b8f71bbb63",
+    "srev": "37216beb-dc68-47e1-8cdd-81d8404686f6",
+    "urev": "dc8315d3-e7b3-49f6-8595-ec252a645b2b"
+  },
+  "pDisableRowLines": {
+    "id": "f1082b65-ba04-44ef-9525-9388ab359f34",
+    "rev": "d3cf9411-9009-4225-82cf-7d41e5b54f6f",
+    "srev": "afaf8ce9-9746-49c4-81e1-14443528c483",
+    "urev": "1077d3a6-b7b6-435b-9052-f250cbdf7b33"
+  },
+  "pDisableColumnLines": {
+    "id": "62758dc4-1a65-47f1-b0ea-f17465a493f6",
+    "rev": "30b14759-b466-4e86-8f97-1f551deb3750",
+    "srev": "a8189a60-bcc1-4744-83bd-e79eb9a170e5",
+    "urev": "cdb590e9-935c-4d53-a336-a936faee61ee"
+  },
+  "rendering": {
+    "id": "38dd112f-4789-4833-9ca4-0202175598ee",
+    "rev": "33fe44f2-2a38-46be-83ae-35965c255fab",
+    "srev": "29d750ab-f551-436b-878e-8b5cc4686e4e",
+    "urev": "3e4cafbc-4137-459b-8ebf-74aa08fafd99"
+  }
+}

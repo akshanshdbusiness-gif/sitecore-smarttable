@@ -1,0 +1,27 @@
+{
+  "name": "sitecore-quicktable",
+  "version": "0.1.0",
+  "description": "Installs the QuickTable table component (Sitecore templates, rendering and React component) into an XM Cloud project.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "quicktable": "./bin/quicktable.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "payload"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "gen": "node tools/gen-items.mjs"
+  },
+  "keywords": [
+    "sitecore",
+    "xm-cloud",
+    "content-sdk",
+    "table"
+  ]
+}
