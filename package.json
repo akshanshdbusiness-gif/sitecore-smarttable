@@ -10,8 +10,14 @@
   "files": [
     "bin",
     "src",
-    "payload"
+    "payload",
+    "tools/ids.json"
   ],
+  "exports": {
+    ".": "./src/detect.js",
+    "./ids": "./tools/ids.json",
+    "./payload/*": "./payload/*"
+  },
   "engines": {
     "node": ">=20"
   },
