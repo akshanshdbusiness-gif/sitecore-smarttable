@@ -332,13 +332,18 @@ written.push(paramField('pDisableRowLines', 'disableRowLines', 'Disable Row Line
 written.push(paramField('pDisableColumnLines', 'disableColumnLines', 'Disable Column Lines', 400, 'Hide vertical borders between columns.'));
 
 // 7. Rendering
+// Fields are read via field(name:) on the base Item interface rather than a
+// "... on QuickTable { }" fragment on purpose: an inline fragment needs the
+// QuickTable *type* to exist in the preview Edge schema, and that type only
+// appears after the template publishes AND the schema regenerates (which lags
+// behind publish). An unknown type is a GraphQL validation error that fails the
+// entire layout query, 500-ing every page the component sits on. field(name:)
+// has no such dependency and keeps working across model changes.
 const COMPONENT_QUERY = `query QuickTableQuery($datasource: String!, $language: String!) {
   datasource: item(path: $datasource, language: $language) {
     id
-    ... on QuickTable {
-      title: field(name: "title") { jsonValue }
-      caption: field(name: "caption") { jsonValue }
-    }
+    title: field(name: "title") { jsonValue }
+    caption: field(name: "caption") { jsonValue }
     children {
       results {
         id

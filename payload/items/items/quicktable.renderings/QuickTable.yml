@@ -16,10 +16,8 @@ SharedFields:
     query QuickTableQuery($datasource: String!, $language: String!) {
       datasource: item(path: $datasource, language: $language) {
         id
-        ... on QuickTable {
-          title: field(name: "title") { jsonValue }
-          caption: field(name: "caption") { jsonValue }
-        }
+        title: field(name: "title") { jsonValue }
+        caption: field(name: "caption") { jsonValue }
         children {
           results {
             id
