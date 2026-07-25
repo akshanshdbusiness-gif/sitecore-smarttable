@@ -8,7 +8,6 @@ import {
   gridFromTable,
   normalizeGrid,
   parseClipboardTSV,
-  textToRichHtml,
   type RawRow,
 } from './clipboard.ts';
 
@@ -90,10 +89,3 @@ test('empty clipboard yields null, not an empty grid', () => {
   assert.equal(parseClipboardTSV('\n\n'), null);
 });
 
-test('rich text wraps paragraphs and escapes markup', () => {
-  assert.equal(textToRichHtml('hello'), '<p>hello</p>');
-  assert.equal(textToRichHtml('a\n\nb'), '<p>a</p><p>b</p>');
-  assert.equal(textToRichHtml('a\nb'), '<p>a<br>b</p>');
-  assert.equal(textToRichHtml('<script>x</script>'), '<p>&lt;script&gt;x&lt;/script&gt;</p>');
-  assert.equal(textToRichHtml('   '), '');
-});

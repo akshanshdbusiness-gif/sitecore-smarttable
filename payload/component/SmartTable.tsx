@@ -36,14 +36,27 @@ function Cell({
   cell,
   header,
   className,
+  editable,
 }: {
   cell: SmartTableCellItem;
   header: boolean;
   className: string;
+  /** Adds the cell to the tab order so authors can move through the grid. */
+  editable: boolean;
 }) {
   const Tag = header ? 'th' : 'td';
   return (
-    <Tag className={className} scope={header ? 'col' : undefined}>
+    <Tag
+      className={className}
+      scope={header ? 'col' : undefined}
+      // Sitecore's inline editing chrome is not focusable on its own, so Tab
+      // skips straight past the table. Putting the cells in the tab order lets
+      // Tab walk left-to-right and wrap to the next row, since document order
+      // is exactly that. Editing mode only — a tab stop per cell would be
+      // noise for visitors.
+      tabIndex={editable ? 0 : undefined}
+      data-smarttable-cell={editable ? '' : undefined}
+    >
       <RichText field={cell.cellContent?.jsonValue} />
     </Tag>
   );
@@ -103,6 +116,7 @@ export const Default: React.FC<SmartTableProps> = (props) => {
             key={cell.id}
             cell={cell}
             header={header}
+            editable={isPageEditing}
             className={[cellBase, header ? 'font-semibold' : ''].filter(Boolean).join(' ')}
           />
         ))}

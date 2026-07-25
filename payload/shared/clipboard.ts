@@ -227,17 +227,3 @@ export function parseClipboard(
   }
   return parseClipboardTSV(data.text ?? '');
 }
-
-/** Cell text → the Rich Text HTML stored in cellContent. */
-export function textToRichHtml(text: string): string {
-  const trimmed = text.trim();
-  if (!trimmed) return '';
-  const escaped = trimmed
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-  return escaped
-    .split(/\n\n+/)
-    .map((para) => `<p>${para.replace(/\n/g, '<br>')}</p>`)
-    .join('');
-}
