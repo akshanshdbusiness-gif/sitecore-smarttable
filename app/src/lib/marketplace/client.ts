@@ -70,6 +70,17 @@ export function getSitecoreContextId(client: ClientSDK): Promise<string> {
 }
 
 /**
+ * Force the Pages canvas to re-render.
+ *
+ * This app writes through the Authoring API, bypassing Sitecore's own field
+ * editing flow entirely, so the canvas has no reason to know the table changed
+ * and would keep showing the pre-paste rows until the author reloaded by hand.
+ */
+export async function reloadPagesCanvas(client: ClientSDK): Promise<void> {
+  await client.mutate('pages.reloadCanvas');
+}
+
+/**
  * Adapt the SDK into the plain `GqlRunner` the write engine expects, so the
  * engine stays transport-agnostic and unit-testable.
  *

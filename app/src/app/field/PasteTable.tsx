@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { parseClipboard, type Grid } from '../../../../payload/shared/clipboard';
-import { createRunner, useMarketplaceClient } from '../../lib/marketplace/client';
+import {
+  createRunner,
+  reloadPagesCanvas,
+  useMarketplaceClient,
+} from '../../lib/marketplace/client';
 import { SMARTTABLE } from '../../lib/smarttable';
 import { writeGrid, type PasteMode } from '../../lib/sitecore/engine';
 import type { ItemRef } from '../../lib/marketplace/context';
@@ -97,6 +101,15 @@ export default function PasteTable({
       );
       setPhase('done');
       onSaved?.();
+
+      // Deliberately after the success state and inside its own catch: the
+      // items are already written, so a failed canvas refresh must not present
+      // itself as a failed paste. Worst case the author reloads Pages.
+      try {
+        await reloadPagesCanvas(client);
+      } catch (reloadError) {
+        console.warn('Canvas reload failed; the table was written.', reloadError);
+      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
       setPhase('error');
