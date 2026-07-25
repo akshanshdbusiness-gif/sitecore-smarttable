@@ -124,6 +124,50 @@ Neither ships in the module on purpose: both live in the site's own content tree
 so serialising them would overwrite the consuming project's items on first push.
 `doctor` cannot verify them either — it only sees the filesystem, not Sitecore.
 
+## Paste from Excel or the web (optional)
+
+The paste UI is a Marketplace app in [`app/`](app), attached to the SmartTable
+datasource as a companion field. It is optional — SmartTable renders fine
+without it; authors just build rows by hand.
+
+Writes travel on the **signed-in author's session**, so Sitecore's own item
+permissions apply and no consuming project stores an application secret.
+
+**1. Deploy the app.** Vercel, Root Directory `app`, and enable *Include source
+files outside of the Root Directory* — the app imports `../tools/ids.json` and
+`../payload/shared/clipboard.ts`. Check `/api/health` returns JSON.
+
+**2. Register a Marketplace app** in the Cloud Portal:
+
+| | |
+|---|---|
+| Extension point | **Page Builder Custom Field** |
+| API access | **Authoring & Management API** |
+| URL | your deployment + `/field` |
+
+**3. Add the companion field** to the SmartTable template
+(`/sitecore/templates/Feature/SmartTable/SmartTable`) → Builder → add a field:
+
+| | |
+|---|---|
+| Name | `pasteTable` — anything except an existing field name |
+| Type | `Marketplace Types > Plugin` |
+| Source | the Marketplace app id |
+
+The name must not collide with another field on the template: a same-name field
+makes the app read its own config value instead of the real one and fail with an
+opaque GraphQL error.
+
+**4. Reload Pages.** Select a SmartTable datasource and the field appears with
+its "Open app" button.
+
+This field deliberately does **not** ship in the SCS module. The
+`Marketplace Types > Plugin` field type only exists once the app is installed in
+the org, so serialising it would leave a broken field on every install that does
+not use the app.
+
+## Faster dev loop
+
 For a faster dev loop you can skip the deploy in step 2:
 
 ```bash
