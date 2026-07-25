@@ -81,6 +81,16 @@ export async function reloadPagesCanvas(client: ClientSDK): Promise<void> {
 }
 
 /**
+ * Ask the host to dismiss the app.
+ *
+ * A direct method on ClientSDK rather than a mutation key — `client.mutate`
+ * only accepts the four `pages.*` keys, none of which close anything.
+ */
+export async function closeApp(client: ClientSDK): Promise<void> {
+  await client.closeApp();
+}
+
+/**
  * Adapt the SDK into the plain `GqlRunner` the write engine expects, so the
  * engine stays transport-agnostic and unit-testable.
  *

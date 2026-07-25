@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { parseClipboard, type Grid } from '../../../../payload/shared/clipboard';
 import {
+  closeApp,
   createRunner,
   reloadPagesCanvas,
   useMarketplaceClient,
@@ -110,7 +111,17 @@ export default function PasteTable({
       } catch (reloadError) {
         console.warn('Canvas reload failed; the table was written.', reloadError);
       }
+
       setPhase('done');
+
+      // Dismiss last, and only on success: the refreshed canvas is better
+      // confirmation than a summary in a panel that is about to disappear. An
+      // error keeps the panel open so the author can read it and retry.
+      try {
+        await closeApp(client);
+      } catch (closeError) {
+        console.warn('Could not close the app; the table was written.', closeError);
+      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
       setPhase('error');
