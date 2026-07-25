@@ -1,0 +1,26 @@
+{
+  "name": "quicktable-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "node --test src/lib/sitecore/engine.test.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sitecore-marketplace-sdk/client": "^0.3.6",
+    "@sitecore-marketplace-sdk/xmc": "^0.4.2",
+    "next": "^15.4.6",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.0",
+    "@types/react": "19.1.9",
+    "@types/react-dom": "19.1.7",
+    "typescript": "5.9.2"
+  }
+}

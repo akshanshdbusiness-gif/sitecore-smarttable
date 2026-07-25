@@ -1,0 +1,62 @@
+:root {
+  color-scheme: light dark;
+  --fg: #1a1a1a;
+  --muted: #666;
+  --line: #d8d8d8;
+  --accent: #5548c8;
+  --error: #b3261e;
+  --surface: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fg: #ececec;
+    --muted: #9a9a9a;
+    --line: #3a3a3a;
+    --accent: #a99cff;
+    --error: #f2b8b5;
+    --surface: #1b1b1b;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 16px;
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--fg);
+  background: var(--surface);
+}
+h1 { font-size: 1.1rem; margin: 0 0 4px; }
+.note { color: var(--muted); font-size: 0.85rem; margin: 4px 0 12px; }
+.error { color: var(--error); }
+button {
+  font: inherit;
+  padding: 6px 12px;
+  margin-right: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button:disabled { opacity: 0.5; cursor: default; }
+textarea {
+  width: 100%;
+  font: inherit;
+  padding: 8px;
+  margin-bottom: 8px;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+}
+label { display: block; margin: 6px 0; }
+fieldset { border: 1px solid var(--line); border-radius: 6px; margin: 10px 0; }
+legend { color: var(--muted); font-size: 0.8rem; }
+.summary { font-weight: 600; margin: 8px 0; }
+/* Wide tables scroll inside their own box; the page never scrolls sideways. */
+.preview { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; margin: 10px 0; }
+.preview table { border-collapse: collapse; width: 100%; font-size: 0.8rem; }
+.preview td { border: 1px solid var(--line); padding: 4px 8px; white-space: nowrap; }
+.preview td.header { font-weight: 600; }
+progress { width: 100%; }
