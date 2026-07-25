@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import PasteTable from './PasteTable';
 import { createRunner, useMarketplaceClient } from '../../lib/marketplace/client';
-import { getPageContext, smartTableDatasources } from '../../lib/marketplace/context';
+import { getPageContext, smartTableDatasources, toItemRef } from '../../lib/marketplace/context';
 import { buildGetItemNamesQuery, readItemNames } from '../../lib/sitecore/queries';
 
 /**
@@ -17,7 +17,8 @@ import { buildGetItemNamesQuery, readItemNames } from '../../lib/sitecore/querie
  */
 
 interface Candidate {
-  itemId: string;
+  /** Raw dataSource value from the rendering tree. */
+  value: string;
   label: string;
 }
 
@@ -25,6 +26,7 @@ export default function FieldPage() {
   const { client, error: sdkError } = useMarketplaceClient();
   const [candidates, setCandidates] = useState<Candidate[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [pagePath, setPagePath] = useState('');
   const [language, setLanguage] = useState('en');
   const [problem, setProblem] = useState<string | null>(null);
 
@@ -34,6 +36,7 @@ export default function FieldPage() {
     try {
       const context = await getPageContext(() => client.query('pages.context'));
       setLanguage(context.language);
+      setPagePath(context.pagePath);
 
       const ids = smartTableDatasources(context.renderings);
 
@@ -49,29 +52,45 @@ export default function FieldPage() {
 
       // One table is the common case — skip the chooser entirely.
       if (ids.length === 1) {
-        setCandidates([{ itemId: ids[0], label: '' }]);
+        setCandidates([{ value: ids[0], label: '' }]);
         setSelected(ids[0]);
         return;
       }
 
       // Several on one page: label them so the author can tell them apart.
-      let labelled: Candidate[] = ids.map((id) => ({ itemId: id, label: id }));
-      try {
-        const run = createRunner(client);
-        const data = await run(
-          buildGetItemNamesQuery({ itemIds: ids, database: 'master', language: context.language })
-        );
-        const named = readItemNames(data, ids.length);
-        if (named.length) {
-          labelled = ids.map((id) => {
+      // A path-shaped datasource already carries a readable name in its last
+      // segment; only the GUID-shaped ones need a round trip to name.
+      const refs = ids.map((value) => ({ value, ref: toItemRef(value, context.pagePath) }));
+      const labelFromPath = (path: string) => path.split('/').filter(Boolean).pop() ?? path;
+
+      let labelled: Candidate[] = refs.map(({ value, ref }) => ({
+        value,
+        label: ref.path ? labelFromPath(ref.path) : (ref.itemId ?? value),
+      }));
+
+      const idRefs = refs.filter((r) => r.ref.itemId);
+      if (idRefs.length) {
+        try {
+          const run = createRunner(client);
+          const data = await run(
+            buildGetItemNamesQuery({
+              itemIds: idRefs.map((r) => r.ref.itemId as string),
+              database: 'master',
+              language: context.language,
+            })
+          );
+          const named = readItemNames(data, idRefs.length);
+          labelled = labelled.map((candidate, i) => {
+            const ref = refs[i].ref;
+            if (!ref.itemId) return candidate;
             const hit = named.find(
-              (n) => n.itemId.replace(/[{}]/g, '').toLowerCase() === id
+              (n) => n.itemId.replace(/[{}]/g, '').toLowerCase() === ref.itemId
             );
-            return { itemId: id, label: hit ? hit.name : id };
+            return hit ? { ...candidate, label: hit.name } : candidate;
           });
+        } catch {
+          // Names are a nicety; the id fallback above still identifies the item.
         }
-      } catch {
-        // Names are a nicety; fall back to raw ids rather than blocking.
       }
       setCandidates(labelled);
     } catch (err) {
@@ -123,8 +142,8 @@ export default function FieldPage() {
         <h1>SmartTable</h1>
         <p className="note">This page has more than one table. Which one?</p>
         {candidates.map((c) => (
-          <button key={c.itemId} type="button" onClick={() => setSelected(c.itemId)}>
-            {c.label || c.itemId}
+          <button key={c.value} type="button" onClick={() => setSelected(c.value)}>
+            {c.label || c.value}
           </button>
         ))}
       </main>
@@ -135,7 +154,11 @@ export default function FieldPage() {
     <main>
       <h1>SmartTable</h1>
       <p className="note">Paste a table from Excel or a web page.</p>
-      <PasteTable datasourceId={selected} language={language} hasExistingContent />
+      <PasteTable
+        datasourceRef={toItemRef(selected, pagePath)}
+        language={language}
+        hasExistingContent
+      />
       {candidates.length > 1 && (
         <button type="button" onClick={() => setSelected(null)}>
           Choose a different table

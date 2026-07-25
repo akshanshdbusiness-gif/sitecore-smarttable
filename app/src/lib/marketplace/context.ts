@@ -66,16 +66,57 @@ export function smartTableDatasources(renderings: PageRendering[]): string[] {
   const ids = renderings
     .filter((r) => bare(r.id) === target)
     .map((r) => r.dataSource)
-    .filter((id): id is string => Boolean(id && id.trim()))
-    .map(bare);
+    .filter((id): id is string => Boolean(id && id.trim()));
+  // Raw values, not normalised: a datasource may be a path, where case matters.
   return [...new Set(ids)];
 }
 
 export interface PageContext {
   pageId: string;
+  pagePath: string;
   language: string;
   version: number;
   renderings: PageRendering[];
+}
+
+/**
+ * How an item is addressed in the Authoring API: by id, or by path.
+ * A datasource is not always a GUID, so callers cannot assume either.
+ */
+export interface ItemRef {
+  itemId?: string;
+  path?: string;
+}
+
+const GUID = /^\{?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}?$/i;
+
+/**
+ * Turn a rendering's raw `dataSource` value into something addressable.
+ *
+ * Sitecore stores three forms here, and only one is a GUID:
+ *   {A1B2…}                     an item id
+ *   /sitecore/content/…         an absolute path
+ *   local:/Data/My Table        relative to the *page* item — the default when
+ *                               an author creates a datasource from the canvas
+ *
+ * The `local:` form is why a paste attempt sent the literal string
+ * "local:/data/new content item" as an item id and the API found nothing.
+ */
+export function toItemRef(dataSource: string, pagePath: string): ItemRef {
+  const value = dataSource.trim();
+
+  if (GUID.test(value)) return { itemId: bare(value) };
+
+  if (/^local:/i.test(value)) {
+    const relative = value.slice('local:'.length).replace(/^\/+/, '');
+    const base = pagePath.replace(/\/+$/, '');
+    return { path: `${base}/${relative}` };
+  }
+
+  if (value.startsWith('/')) return { path: value };
+
+  // A bare name is still relative to the page.
+  return { path: `${pagePath.replace(/\/+$/, '')}/${value}` };
 }
 
 /**
@@ -102,6 +143,7 @@ export async function getPageContext(
 
   return {
     pageId: String(pageInfo.id),
+    pagePath: typeof pageInfo.path === 'string' ? pageInfo.path : '',
     language: typeof pageInfo.language === 'string' ? pageInfo.language : 'en',
     version: typeof pageInfo.version === 'number' ? pageInfo.version : 1,
     renderings: parsePresentationDetails(

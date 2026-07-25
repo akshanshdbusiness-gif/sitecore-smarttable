@@ -5,6 +5,7 @@ import {
   normalizeGuid,
   readTableStructure,
   type GraphqlOperation,
+  type ItemRef,
   type RowNode,
 } from './queries.ts';
 
@@ -25,7 +26,8 @@ export type PasteMode = 'replace' | 'append';
 export type GqlRunner = (op: GraphqlOperation) => Promise<unknown>;
 
 export interface WriteOptions {
-  datasourceId: string;
+  /** The datasource, addressed by id or path. */
+  ref: ItemRef;
   grid: Grid;
   mode?: PasteMode;
   language?: string;
@@ -119,7 +121,7 @@ async function runInBatches<T>(
  */
 export async function writeGrid(options: WriteOptions): Promise<WriteResult> {
   const {
-    datasourceId,
+    ref,
     grid,
     mode = 'replace',
     language = 'en',
@@ -134,10 +136,21 @@ export async function writeGrid(options: WriteOptions): Promise<WriteResult> {
 
   if (grid.length === 0) throw new Error('Nothing to write: the grid is empty.');
 
-  const itemId = normalizeGuid(datasourceId);
+  // The datasource may arrive as an id or a path (Sitecore's default for a
+  // canvas-created datasource is the relative token `local:/Data/Name`), so the
+  // real id comes back from this first read and every create parents onto it.
+  const lookupRef = ref.itemId ? { itemId: normalizeGuid(ref.itemId) } : ref;
+  const existingData = await run(buildGetTableQuery({ ref: lookupRef, database, language }));
+  const structure = readTableStructure(existingData);
+  if (!structure) {
+    throw new Error(
+      `Datasource not found: ${ref.itemId ?? ref.path}. Check the component has a ` +
+        'datasource assigned and that it exists in the master database.'
+    );
+  }
 
-  const existingData = await run(buildGetTableQuery({ itemId, database, language }));
-  const existingRows = ordered(readTableStructure(existingData));
+  const itemId = normalizeGuid(structure.itemId);
+  const existingRows = ordered(structure.rows);
 
   const incomingCols = grid.reduce((max, row) => Math.max(max, row.length), 0);
   const existingCols = existingRows.reduce((max, row) => Math.max(max, row.cells.length), 0);

@@ -33,15 +33,38 @@ export interface RowNode {
  * schema. If the first call fails, check the shape in the GraphQL IDE — this
  * is the single most likely place for a schema mismatch.
  */
+export interface ItemRef {
+  itemId?: string;
+  path?: string;
+}
+
+/**
+ * Read the existing Row/Cell tree under a datasource, addressed by id or path.
+ *
+ * A datasource is not always a GUID — Sitecore's default for a canvas-created
+ * one is the relative token  — so this accepts either and
+ * returns the resolved , which callers need as the parent for creates.
+ */
 export function buildGetTableQuery(params: {
-  itemId: string;
+  ref: ItemRef;
   database: string;
   language: string;
 }): GraphqlOperation {
+  const byId = Boolean(params.ref.itemId);
+  const declaration = byId ? '$itemId: ID!' : '$path: String!';
+  const selector = byId ? 'itemId: $itemId' : 'path: $path';
+
+  const variables: Record<string, unknown> = {
+    database: params.database,
+    language: params.language,
+  };
+  if (byId) variables.itemId = params.ref.itemId;
+  else variables.path = params.ref.path;
+
   return {
     query: `
-      query GetSmartTable($itemId: ID!, $database: String!, $language: String!) {
-        item(where: { itemId: $itemId, database: $database, language: $language }) {
+      query GetSmartTable(${declaration}, $database: String!, $language: String!) {
+        item(where: { ${selector}, database: $database, language: $language }) {
           itemId
           name
           children {
@@ -59,7 +82,7 @@ export function buildGetTableQuery(params: {
         }
       }
     `,
-    variables: params,
+    variables,
   };
 }
 
@@ -152,16 +175,37 @@ export function normalizeGuid(id: string): string {
 }
 
 /** Extract the Row/Cell tree from a GetSmartTable response. */
-export function readTableStructure(data: unknown): RowNode[] {
-  const item = (data as { item?: { children?: { nodes?: unknown[] } } } | null)?.item;
-  const rows = item?.children?.nodes ?? [];
-  return (rows as Array<{ itemId: string; name: string; children?: { nodes?: CellNode[] } }>).map(
-    (row) => ({
+export interface TableStructure {
+  /** Resolved id of the datasource — needed as the parent for created rows. */
+  itemId: string;
+  rows: RowNode[];
+}
+
+/**
+ * Read the datasource and its Row/Cell tree.
+ *
+ * Returns the resolved `itemId` as well as the rows, because the datasource may
+ * have been addressed by path and every subsequent create needs a real id.
+ * Returns null when the item does not exist, which the caller must report —
+ * silently treating it as an empty table would create rows under nothing.
+ */
+export function readTableStructure(data: unknown): TableStructure | null {
+  const item = (
+    data as { item?: { itemId?: string; children?: { nodes?: unknown[] } } } | null
+  )?.item;
+  if (!item?.itemId) return null;
+
+  const rows = item.children?.nodes ?? [];
+  return {
+    itemId: item.itemId,
+    rows: (
+      rows as Array<{ itemId: string; name: string; children?: { nodes?: CellNode[] } }>
+    ).map((row) => ({
       itemId: row.itemId,
       name: row.name,
       cells: row.children?.nodes ?? [],
-    })
-  );
+    })),
+  };
 }
 
 /**

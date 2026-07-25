@@ -42,6 +42,34 @@ export function useMarketplaceClient() {
 }
 
 /**
+ * The Authoring API is multi-tenant: without a Sitecore context id it has no
+ * environment to resolve against and answers 404 "No sitecore context" — not
+ * a GraphQL error, so it surfaces as a transport failure. Resolved once and
+ * cached; `.preview` is the draft/authoring context, which is what this app
+ * writes to, with `.live` as a fallback rather than failing outright.
+ */
+let contextIdPromise: Promise<string> | null = null;
+
+export function getSitecoreContextId(client: ClientSDK): Promise<string> {
+  if (!contextIdPromise) {
+    contextIdPromise = (async () => {
+      const { data } = await client.query('application.context');
+      const resource = data?.resourceAccess?.[0];
+      const contextId = resource?.context?.preview || resource?.context?.live;
+      if (!contextId) {
+        throw new Error(
+          'No Sitecore context id in application.context. Confirm an environment ' +
+            'is linked to this app in Cloud Portal (App access > your installed app). ' +
+            `resourceAccess: ${JSON.stringify(data?.resourceAccess ?? [])}`
+        );
+      }
+      return contextId;
+    })();
+  }
+  return contextIdPromise;
+}
+
+/**
  * Adapt the SDK into the plain `GqlRunner` the write engine expects, so the
  * engine stays transport-agnostic and unit-testable.
  *
@@ -51,12 +79,26 @@ export function useMarketplaceClient() {
  */
 export function createRunner(client: ClientSDK) {
   return async (op: GraphqlOperation): Promise<unknown> => {
+    const sitecoreContextId = await getSitecoreContextId(client);
+
     const response = (await client.mutate('xmc.authoring.graphql', {
-      params: { body: { query: op.query, variables: op.variables } },
+      params: {
+        body: { query: op.query, variables: op.variables },
+        query: { sitecoreContextId },
+      },
     })) as { data?: { data?: unknown; errors?: Array<{ message: string }> } };
 
     const errors = response?.data?.errors;
-    if (errors?.length) throw new Error(errors.map((e) => e.message).join('; '));
+    if (errors?.length) {
+      // path/extensions identify which field or argument was rejected; the
+      // message alone often does not.
+      console.error('Authoring API error', {
+        query: op.query,
+        variables: op.variables,
+        errors,
+      });
+      throw new Error(errors.map((e) => e.message).join('; '));
+    }
     return response?.data?.data;
   };
 }

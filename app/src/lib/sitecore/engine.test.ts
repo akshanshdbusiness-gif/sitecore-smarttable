@@ -32,7 +32,7 @@ function fakeTenant(initial: FakeRow[] = []) {
     if (kind === 'query') {
       return {
         item: {
-          itemId: op.variables.itemId,
+          itemId: op.variables.itemId ?? 'resolved-ds',
           name: 'ds',
           children: {
             nodes: rows.map((r) => ({
@@ -78,7 +78,7 @@ const templates = {
 test('creates the full structure for an empty datasource', async () => {
   const t = fakeTenant();
   const result = await writeGrid({
-    datasourceId: 'ds-1',
+    ref: { itemId: 'ds-1' },
     grid: grid(['Plan', 'Price'], ['Pro', '$49']),
     run: t.run,
     ...templates,
@@ -96,7 +96,7 @@ test('creates the full structure for an empty datasource', async () => {
 test('row and cell names are zero-padded so Sitecore sorts them correctly', async () => {
   const t = fakeTenant();
   await writeGrid({
-    datasourceId: 'ds-1',
+    ref: { itemId: 'ds-1' },
     grid: grid(...Array.from({ length: 11 }, (_, i) => [`r${i}`])),
     run: t.run,
     ...templates,
@@ -116,7 +116,7 @@ test('re-pasting the same shape creates nothing and only updates', async () => {
   ];
   const t = fakeTenant(existing);
   const result = await writeGrid({
-    datasourceId: 'ds-1',
+    ref: { itemId: 'ds-1' },
     grid: grid(['H'], ['A']),
     run: t.run,
     ...templates,
@@ -139,7 +139,7 @@ test('replace blanks cells left over from a larger previous table', async () => 
   ];
   const t = fakeTenant(existing);
   const result = await writeGrid({
-    datasourceId: 'ds-1',
+    ref: { itemId: 'ds-1' },
     grid: grid(['H'], ['A']),
     run: t.run,
     ...templates,
@@ -157,7 +157,7 @@ test('append adds rows after the existing ones and leaves them untouched', async
   ];
   const t = fakeTenant(existing);
   const result = await writeGrid({
-    datasourceId: 'ds-1',
+    ref: { itemId: 'ds-1' },
     grid: grid(['B']),
     mode: 'append',
     run: t.run,
@@ -178,7 +178,7 @@ test('append widens existing rows when the paste has more columns', async () => 
   ];
   const t = fakeTenant(existing);
   const result = await writeGrid({
-    datasourceId: 'ds-1',
+    ref: { itemId: 'ds-1' },
     grid: grid(['a', 'b', 'c']),
     mode: 'append',
     run: t.run,
@@ -193,7 +193,7 @@ test('append widens existing rows when the paste has more columns', async () => 
 test('ragged rows do not leave holes', async () => {
   const t = fakeTenant();
   const result = await writeGrid({
-    datasourceId: 'ds-1',
+    ref: { itemId: 'ds-1' },
     grid: grid(['a', 'b', 'c'], ['d']),
     run: t.run,
     ...templates,
@@ -219,7 +219,7 @@ test('content writes are batched, creates are not parallel', async () => {
   };
 
   await writeGrid({
-    datasourceId: 'ds-1',
+    ref: { itemId: 'ds-1' },
     grid: grid(['a', 'b'], ['c', 'd'], ['e', 'f']),
     run,
     batchSize: 2,
@@ -233,7 +233,7 @@ test('reports progress across the content writes', async () => {
   const t = fakeTenant();
   const seen: number[] = [];
   await writeGrid({
-    datasourceId: 'ds-1',
+    ref: { itemId: 'ds-1' },
     grid: grid(['a', 'b'], ['c', 'd']),
     run: t.run,
     onProgress: (done, total) => seen.push(done / total),
@@ -245,7 +245,7 @@ test('reports progress across the content writes', async () => {
 test('an empty grid is rejected rather than silently wiping the table', async () => {
   const t = fakeTenant();
   await assert.rejects(
-    writeGrid({ datasourceId: 'ds-1', grid: [], run: t.run, ...templates }),
+    writeGrid({ ref: { itemId: 'ds-1' }, grid: [], run: t.run, ...templates }),
     /empty/
   );
   assert.equal(t.ops.length, 0);
@@ -254,7 +254,7 @@ test('an empty grid is rejected rather than silently wiping the table', async ()
 test('braced GUIDs are normalised before use', async () => {
   const t = fakeTenant();
   await writeGrid({
-    datasourceId: '{ABCDEF01-0000-0000-0000-000000000000}',
+    ref: { itemId: '{ABCDEF01-0000-0000-0000-000000000000}' },
     grid: grid(['x']),
     run: t.run,
     ...templates,
@@ -266,4 +266,33 @@ test('rich text escapes markup and preserves paragraphs', () => {
   assert.equal(textToRichHtml('a\n\nb'), '<p>a</p><p>b</p>');
   assert.equal(textToRichHtml('<b>x'), '<p>&lt;b&gt;x</p>');
   assert.equal(textToRichHtml('  '), '');
+});
+
+test('a datasource addressed by path resolves to the real id before creating', async () => {
+  // Sitecore's default for a canvas-created datasource is the relative token
+  // local:/Data/Name, which arrives here as a path. Rows must be parented onto
+  // the id the lookup returns, not onto the path string.
+  const t = fakeTenant();
+  await writeGrid({
+    ref: { path: '/sitecore/content/site/home/Data/New Content Item' },
+    grid: grid(['a']),
+    run: t.run,
+    ...templates,
+  });
+
+  const lookup = t.ops[0].op;
+  assert.equal(lookup.variables.path, '/sitecore/content/site/home/Data/New Content Item');
+  assert.equal(lookup.variables.itemId, undefined);
+  assert.match(lookup.query, /path: \$path/);
+
+  const createRow = t.ops.find((o) => o.kind === 'create');
+  assert.equal(createRow?.op.variables.parentId, 'resolved-ds');
+});
+
+test('a missing datasource is reported, not treated as an empty table', async () => {
+  const run = async () => ({ item: null });
+  await assert.rejects(
+    writeGrid({ ref: { path: '/nope' }, grid: grid(['a']), run, ...templates }),
+    /Datasource not found/
+  );
 });

@@ -5,11 +5,13 @@ import { parseClipboard, type Grid } from '../../../../payload/shared/clipboard'
 import { createRunner, useMarketplaceClient } from '../../lib/marketplace/client';
 import { SMARTTABLE } from '../../lib/smarttable';
 import { writeGrid, type PasteMode } from '../../lib/sitecore/engine';
+import type { ItemRef } from '../../lib/marketplace/context';
 
 type Phase = 'idle' | 'capturing' | 'preview' | 'saving' | 'done' | 'error';
 
 interface Props {
-  datasourceId: string;
+  /** The datasource, by id or path — a canvas-created one is a path. */
+  datasourceRef: ItemRef;
   language?: string;
   /** Enables the replace/append choice; pointless when the table is empty. */
   hasExistingContent?: boolean;
@@ -17,7 +19,7 @@ interface Props {
 }
 
 export default function PasteTable({
-  datasourceId,
+  datasourceRef,
   language = 'en',
   hasExistingContent = false,
   onSaved,
@@ -77,7 +79,7 @@ export default function PasteTable({
             : [Array<string>(grid[0]?.length ?? 0).fill(''), ...grid];
 
       const result = await writeGrid({
-        datasourceId,
+        ref: datasourceRef,
         grid: payload,
         mode,
         language,
