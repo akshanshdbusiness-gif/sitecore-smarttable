@@ -6,8 +6,20 @@ builds its own, and authors end up either fighting a Rich Text editor or
 hand-creating one item per cell.
 
 SmartTable is that component, packaged so it can be installed instead of
-rebuilt, plus a Marketplace app that turns a copied Excel range into Sitecore
+rebuilt, plus a companion app that turns a copied Excel range into Sitecore
 items in one paste.
+
+**A note on availability before you read on.** The app is *not* published to the
+Sitecore Marketplace. It is registered privately in my own organisation, and
+there is no public listing to install from. What is public is the source — all
+of it, including the app — so you can deploy your own instance and register it
+privately in your organisation exactly the same way. That takes about ten
+minutes and is covered in step 4.
+
+I also keep one instance deployed for anyone who wants to try it before building
+their own; the URL is in the repository README. It is a personal deployment
+shared in good faith rather than a service — please point it at a sandbox, not
+production, and go easy on it.
 
 ![SmartTable logo](images/smarttable-logo.png)
 
@@ -23,10 +35,10 @@ deployables, they run in different places, and nothing links them at build time.
 │  npx sitecore-smarttable │  installer (npm package)
 │         init             │
 └────────────┬─────────────┘
-             │ copies two folders into the customer's repo
+             │ copies two folders into your repo
              ▼
 ┌─────────────────────────────────────────────────────────┐
-│  Customer's SitecoreAI repo                             │
+│  Your SitecoreAI repo                                   │
 │                                                         │
 │   authoring/items/smarttable/**   ──deploy──►  Sitecore │
 │      (templates + rendering)                    (CM)    │
@@ -38,9 +50,9 @@ deployables, they run in different places, and nothing links them at build time.
                      renders the table, and the     │
                      canvas the author edits in ────┘
                                                     │
-┌──────────────────────────┐                        │
-│  SmartTable app          │  Marketplace app       │
-│  (Next.js, on Vercel)    │                        │
+┌──────────────────────────┐   you deploy this      │
+│  SmartTable app          │   yourself and          │
+│  (Next.js — your host)   │   register it privately │
 │                          │                        │
 │  runs inside Pages ──────┼── writes items ───► Sitecore
 │  as a Custom Field       │   (Authoring API,      │
@@ -53,9 +65,8 @@ deployables, they run in different places, and nothing links them at build time.
 The important properties:
 
 - **The installer never talks to Sitecore.** It is a file copy. The items reach
-  the CM through the customer's normal deploy; the component through their
-  normal build.
-- **The app never touches the customer's repo.** It writes items over the
+  the CM through your normal deploy; the component through your normal build.
+- **The app never touches your repo.** It writes items over the
   Authoring API, in the browser, inside the Pages iframe.
 - **They meet only in Sitecore** — the app writes Row/Cell items that the
   component reads. What keeps them in agreement is that the template GUIDs are
@@ -81,7 +92,7 @@ The installer reads `xmcloud.build.json` and `sitecore.json` to work out where
 things go, rather than assuming a layout:
 
 ```js
-// derive the items destination from the customer's own module glob —
+// derive the items destination from your own module glob —
 // a module.json placed outside those globs is pushed by nothing
 // and fails silently at deploy time
 const bases = sitecore.modules.map(globBase);          // "authoring/items/**/*.module.json" → "authoring/items"
@@ -91,8 +102,8 @@ const itemsDest = join(root, preferred, 'smarttable');
 
 Then commit, deploy, and publish. Two steps stay manual, per site: adding the
 rendering to **Available Renderings**, and creating a `SmartTable Folder` item
-under the site's `/Data`. Both live in the customer's own content tree, so
-shipping them in the module would overwrite their items on first push.
+under the site's `/Data`. Both live in your own content tree, so shipping them
+in the module would overwrite your items on first push.
 
 ---
 
@@ -151,11 +162,43 @@ and silently lose inline editing.
 
 ---
 
-## Step 4 — The Marketplace app
+## Step 4 — The paste app
 
-Register it as a **Page Builder Custom Field** with **Authoring & Management
-API** access, pointed at `/field`. Then add a field to the SmartTable template
-with Type `Marketplace Types > Plugin` and Source set to the app id.
+There is nothing to install from the Marketplace here — this app is registered
+privately, and yours will be too. A Marketplace app is really just a hosted URL
+plus a set of resource grants, so "registering" it is a form in the Cloud
+Portal, not a submission or a review.
+
+**Deploy it wherever you like.** It is a plain Next.js app with no server-side
+state, so its own Vercel project is the simplest option, but hosting it under
+your existing editing-host domain works just as well. All that matters is that
+the URL is HTTPS and reachable from the browser, and that you point the
+registration at the `/field` route:
+
+```
+https://smarttable.example.com/field
+https://your-editing-host.example.com/smarttable/field
+```
+
+Then in Cloud Portal:
+
+| | |
+|---|---|
+| Extension point | **Page Builder Custom Field** |
+| API access | **Authoring & Management API** |
+| URL | your deployment + `/field` |
+
+And on the SmartTable template, add a field with Type
+`Marketplace Types > Plugin` and Source set to the app id. One trap: do not give
+that field the same name as an existing field on the template — the app then
+reads its own config value instead of the real one and fails with an opaque
+GraphQL error.
+
+Reload Pages and the field appears with its "Open app" button.
+
+> If you would rather try it before deploying anything, the README links to an
+> instance I keep running. Use a sandbox environment with it — it writes real
+> items with whatever permissions your signed-in account has.
 
 ### Finding out which table the author is on
 
@@ -300,8 +343,19 @@ the ordering guarantees were not what the code actually did.
 
 ## Try it
 
+The component half needs nothing but the installer:
+
 ```bash
 npx github:akshanshdbusiness-gif/sitecore-smarttable init --host=<your-rendering-host>
 ```
 
-Source: [github.com/akshanshdbusiness-gif/sitecore-smarttable](https://github.com/akshanshdbusiness-gif/sitecore-smarttable)
+The paste app is in the same repository under `app/`. Deploy it, register it
+privately in your own organisation, and it is yours — no listing, no approval,
+no dependency on mine.
+
+Source, and the link to my running instance:
+[github.com/akshanshdbusiness-gif/sitecore-smarttable](https://github.com/akshanshdbusiness-gif/sitecore-smarttable)
+
+Sharing this because the "no table component" gap costs every Sitecore project
+the same week of work. If you build on it, improve it, or find where it breaks,
+the issues tab is open.
