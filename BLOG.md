@@ -1,4 +1,4 @@
-# Paste an Excel table straight into Sitecore
+# Introducing SmartTable into SitecoreAI
 
 Sitecore ships no table component. Headless SXA gives you ColumnSplitter,
 RowSplitter, RichText and a handful of others — no table. So every project
