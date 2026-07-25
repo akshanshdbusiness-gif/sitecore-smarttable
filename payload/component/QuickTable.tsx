@@ -72,8 +72,9 @@ export const Default: React.FC<QuickTableProps> = (props) => {
   if (allRows.length === 0) {
     return isPageEditing ? (
       <div className="rounded border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
-        QuickTable is empty. Open the table field to paste from Excel, or add Row
-        items under the datasource.
+        QuickTable is empty. In Content Editor, insert <strong>QuickTableRow</strong>{' '}
+        items under this datasource, then <strong>QuickTableCell</strong> items
+        inside each row.
       </div>
     ) : null;
   }
