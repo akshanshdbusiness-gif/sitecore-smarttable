@@ -1,55 +1,132 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import PasteTable from './PasteTable';
-import { useMarketplaceClient } from '../../lib/marketplace/client';
+import { createRunner, useMarketplaceClient } from '../../lib/marketplace/client';
+import { getPageContext, smartTableDatasources } from '../../lib/marketplace/context';
+import { buildGetItemNamesQuery, readItemNames } from '../../lib/sitecore/queries';
 
 /**
  * Custom field entry point.
  *
- * Sitecore renders this inside the field editor and supplies the item context,
- * so there is no item picker and no guessing which table the author selected —
- * the reason this is a custom field rather than a standalone panel.
- *
- * The exact shape of `pages.context` is not yet verified against a live tenant;
- * until it is, the datasource id falls back to the `itemId` query parameter
- * Sitecore appends when hosting the field.
+ * The datasource is resolved from the page's rendering tree rather than from
+ * pages.context directly: pageInfo is the *page* item even while this field is
+ * open for a component, so its id is the wrong target. SmartTable's rendering
+ * id is frozen and identical in every install, which makes picking the right
+ * rendering out of that tree exact rather than a guess.
  */
+
+interface Candidate {
+  itemId: string;
+  label: string;
+}
+
 export default function FieldPage() {
-  const { client } = useMarketplaceClient();
-  const [datasourceId, setDatasourceId] = useState<string | null>(null);
+  const { client, error: sdkError } = useMarketplaceClient();
+  const [candidates, setCandidates] = useState<Candidate[] | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const [language, setLanguage] = useState('en');
+  const [problem, setProblem] = useState<string | null>(null);
+
+  const resolve = useCallback(async () => {
+    if (!client) return;
+    setProblem(null);
+    try {
+      const context = await getPageContext(() => client.query('pages.context'));
+      setLanguage(context.language);
+
+      const ids = smartTableDatasources(context.renderings);
+
+      if (ids.length === 0) {
+        setProblem(
+          context.renderings.length === 0
+            ? 'This page has no rendering tree yet. Add a SmartTable component to the page first.'
+            : 'No SmartTable component found on this page. This field only works alongside a SmartTable.'
+        );
+        setCandidates([]);
+        return;
+      }
+
+      // One table is the common case — skip the chooser entirely.
+      if (ids.length === 1) {
+        setCandidates([{ itemId: ids[0], label: '' }]);
+        setSelected(ids[0]);
+        return;
+      }
+
+      // Several on one page: label them so the author can tell them apart.
+      let labelled: Candidate[] = ids.map((id) => ({ itemId: id, label: id }));
+      try {
+        const run = createRunner(client);
+        const data = await run(
+          buildGetItemNamesQuery({ itemIds: ids, database: 'master', language: context.language })
+        );
+        const named = readItemNames(data, ids.length);
+        if (named.length) {
+          labelled = ids.map((id) => {
+            const hit = named.find(
+              (n) => n.itemId.replace(/[{}]/g, '').toLowerCase() === id
+            );
+            return { itemId: id, label: hit ? hit.name : id };
+          });
+        }
+      } catch {
+        // Names are a nicety; fall back to raw ids rather than blocking.
+      }
+      setCandidates(labelled);
+    } catch (err) {
+      setProblem(err instanceof Error ? err.message : String(err));
+      setCandidates([]);
+    }
+  }, [client]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fromQuery = params.get('itemId') ?? params.get('sc_itemid');
-    if (fromQuery) setDatasourceId(fromQuery);
-    const lang = params.get('language') ?? params.get('sc_lang');
-    if (lang) setLanguage(lang);
-  }, []);
+    void resolve();
+  }, [resolve]);
 
-  useEffect(() => {
-    if (!client || datasourceId) return;
-    client
-      .query('pages.context')
-      .then((res) => {
-        const ctx = res?.data as { itemContext?: { id?: string; language?: string } } | undefined;
-        if (ctx?.itemContext?.id) setDatasourceId(ctx.itemContext.id);
-        if (ctx?.itemContext?.language) setLanguage(ctx.itemContext.language);
-      })
-      .catch(() => {
-        /* fall back to the query parameter */
-      });
-  }, [client, datasourceId]);
-
-  if (!datasourceId) {
+  if (sdkError) {
     return (
       <main>
         <h1>SmartTable</h1>
-        <p className="note">
-          Waiting for the item context. Open this from a SmartTable datasource in
-          Sitecore.
+        <p className="note error">
+          Could not reach Sitecore: {sdkError.message}. This app has to run inside
+          Sitecore, not as a standalone page.
         </p>
+      </main>
+    );
+  }
+
+  if (!client || candidates === null) {
+    return (
+      <main>
+        <h1>SmartTable</h1>
+        <p className="note">Connecting to Sitecore…</p>
+      </main>
+    );
+  }
+
+  if (problem) {
+    return (
+      <main>
+        <h1>SmartTable</h1>
+        <p className="note error">{problem}</p>
+        <button type="button" onClick={() => void resolve()}>
+          Retry
+        </button>
+      </main>
+    );
+  }
+
+  if (!selected) {
+    return (
+      <main>
+        <h1>SmartTable</h1>
+        <p className="note">This page has more than one table. Which one?</p>
+        {candidates.map((c) => (
+          <button key={c.itemId} type="button" onClick={() => setSelected(c.itemId)}>
+            {c.label || c.itemId}
+          </button>
+        ))}
       </main>
     );
   }
@@ -58,7 +135,12 @@ export default function FieldPage() {
     <main>
       <h1>SmartTable</h1>
       <p className="note">Paste a table from Excel or a web page.</p>
-      <PasteTable datasourceId={datasourceId} language={language} hasExistingContent />
+      <PasteTable datasourceId={selected} language={language} hasExistingContent />
+      {candidates.length > 1 && (
+        <button type="button" onClick={() => setSelected(null)}>
+          Choose a different table
+        </button>
+      )}
     </main>
   );
 }

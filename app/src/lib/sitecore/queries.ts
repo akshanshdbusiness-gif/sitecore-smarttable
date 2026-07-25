@@ -163,3 +163,52 @@ export function readTableStructure(data: unknown): RowNode[] {
     })
   );
 }
+
+/**
+ * Fetch names/paths for several items in one round trip. The Authoring API
+ * exposes `item` as a single-id lookup, so this aliases one field per id —
+ * used to label the chooser when a page holds more than one SmartTable.
+ */
+export function buildGetItemNamesQuery(params: {
+  itemIds: string[];
+  database: string;
+  language: string;
+}): GraphqlOperation {
+  const declarations = params.itemIds.map((_, i) => `$id${i}: ID!`).join(', ');
+  const selections = params.itemIds
+    .map(
+      (_, i) =>
+        `i${i}: item(where: { itemId: $id${i}, database: $database, language: $language }) { itemId name path }`
+    )
+    .join('\n');
+
+  const variables: Record<string, unknown> = {
+    database: params.database,
+    language: params.language,
+  };
+  params.itemIds.forEach((id, i) => {
+    variables[`id${i}`] = id;
+  });
+
+  return {
+    query: `
+      query GetItemNames($database: String!, $language: String!, ${declarations}) {
+        ${selections}
+      }
+    `,
+    variables,
+  };
+}
+
+export function readItemNames(
+  data: unknown,
+  count: number
+): Array<{ itemId: string; name: string; path: string }> {
+  const out: Array<{ itemId: string; name: string; path: string }> = [];
+  const record = (data ?? {}) as Record<string, { itemId: string; name: string; path: string } | null>;
+  for (let i = 0; i < count; i++) {
+    const item = record[`i${i}`];
+    if (item) out.push(item);
+  }
+  return out;
+}
