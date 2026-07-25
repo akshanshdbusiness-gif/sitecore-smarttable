@@ -8,5 +8,5 @@ originals, so a future edit does not mean redrawing them.
 
 | File | Shows |
 |---|---|
-|  | How the installer, your repo and the app connect |
-|  | Cartoon: a developer delighted by a pasted table |
+| `architecture.svg` | How the installer, your repo and the app connect |
+| `happy-dev.svg` | Cartoon: a developer delighted by a pasted table |
