@@ -16,13 +16,15 @@
   "exports": {
     ".": "./src/detect.js",
     "./ids": "./tools/ids.json",
+    "./clipboard": "./payload/shared/clipboard.ts",
     "./payload/*": "./payload/*"
   },
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "gen": "node tools/gen-items.mjs"
+    "gen": "node tools/gen-items.mjs",
+    "test": "node --test payload/shared/clipboard.test.ts"
   },
   "keywords": [
     "sitecore",
