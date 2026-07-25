@@ -372,7 +372,12 @@ written.push(write(`${RND_DIR}/QuickTable.yml`, emitItem({
     { id: F.componentQuery, hint: 'ComponentQuery', value: COMPONENT_QUERY },
     { id: F.datasourceTemplate, hint: 'Datasource Template', value: `${TPL_ROOT}/QuickTable` },
     { id: F.datasourceLocation, hint: 'Datasource Location', value: DATASOURCE_LOCATION },
-    { id: F.parametersTemplate, hint: 'Parameters Template', value: `${TPL_ROOT}/Rendering Parameters/QuickTableParameters` },
+    // Parameters Template must be a GUID, not a path. Sitecore parses it with
+    // Data.ID during RenderItem for every page containing the rendering, so a
+    // path throws FormatException and fails the entire layout response — the
+    // page 500s with no usable route, regardless of the ComponentQuery.
+    // (Datasource Template, just above, does accept a path.)
+    { id: F.parametersTemplate, hint: 'Parameters Template', value: braced(ids.params.id) },
   ],
   langFields: [{ id: F.title, hint: 'Title', value: 'QuickTable' }],
   displayName: 'QuickTable',

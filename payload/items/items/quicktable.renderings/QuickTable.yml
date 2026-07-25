@@ -38,7 +38,7 @@ SharedFields:
   Value: "/sitecore/templates/Feature/QuickTable/QuickTable"
 - ID: "a77e8568-1ab3-44f1-a664-b7c37ec7810d"
   Hint: Parameters Template
-  Value: "/sitecore/templates/Feature/QuickTable/Rendering Parameters/QuickTableParameters"
+  Value: "{4CD139B8-B6BD-49B9-93B6-6D4DF874C542}"
 - ID: "b5b27af1-25ef-405c-87ce-369b3a004016"
   Hint: Datasource Location
   Value: "query:$site/*[@@name='Data']/*[@@templatename='QuickTable Folder']|query:$sharedSites/*[@@name='Data']/*[@@templatename='QuickTable Folder']"
