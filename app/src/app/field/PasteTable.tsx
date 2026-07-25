@@ -11,7 +11,7 @@ import { SMARTTABLE } from '../../lib/smarttable';
 import { writeGrid, type PasteMode } from '../../lib/sitecore/engine';
 import type { ItemRef } from '../../lib/marketplace/context';
 
-type Phase = 'idle' | 'capturing' | 'preview' | 'saving' | 'done' | 'error';
+type Phase = 'idle' | 'capturing' | 'preview' | 'saving' | 'reloading' | 'done' | 'error';
 
 interface Props {
   /** The datasource, by id or path — a canvas-created one is a path. */
@@ -99,17 +99,18 @@ export default function PasteTable({
           result.columns === 1 ? '' : 's'
         } written.`
       );
-      setPhase('done');
       onSaved?.();
 
-      // Deliberately after the success state and inside its own catch: the
-      // items are already written, so a failed canvas refresh must not present
-      // itself as a failed paste. Worst case the author reloads Pages.
+      // Its own phase and its own catch: the items are already written by now,
+      // so a failed refresh must not present itself as a failed paste. Worst
+      // case the author reloads Pages themselves.
+      setPhase('reloading');
       try {
         await reloadPagesCanvas(client);
       } catch (reloadError) {
         console.warn('Canvas reload failed; the table was written.', reloadError);
       }
+      setPhase('done');
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
       setPhase('error');
@@ -215,6 +216,8 @@ export default function PasteTable({
           </button>
         </div>
       )}
+
+      {phase === 'reloading' && <p className="note">Reloading the canvas… please wait.</p>}
 
       {phase === 'saving' && (
         <div>

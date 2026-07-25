@@ -1,5 +1,6 @@
 import {
   buildCreateItemMutation,
+  buildDeleteItemMutation,
   buildGetTableQuery,
   buildUpdateFieldsMutation,
   normalizeGuid,
@@ -53,7 +54,8 @@ export interface WriteResult {
   rowsCreated: number;
   cellsCreated: number;
   cellsUpdated: number;
-  cellsCleared: number;
+  rowsDeleted: number;
+  cellsDeleted: number;
 }
 
 const ROW_PREFIX = 'Row-';
@@ -232,20 +234,22 @@ export async function writeGrid(options: WriteOptions): Promise<WriteResult> {
     }
   }
 
-  let cellsCleared = 0;
+  // Surplus structure from a larger previous table. Blanking these instead of
+  // removing them was wrong: the items still exist, so the component still
+  // renders them — an empty row on the page rather than no row.
+  const surplusRows: string[] = [];
+  const surplusCells: string[] = [];
   if (mode === 'replace') {
-    // Anything that existed before and did not receive content is emptied:
-    // rows below the pasted range and columns to the right of it. Scanning the
-    // existing tree rather than the write range is what catches both — a
-    // smaller second paste must not leave the previous table's content on
-    // screen. The items are kept, only blanked, so their ids stay stable.
-    for (const row of existingRows) {
-      for (const cell of row.cells) {
-        if (written.has(cell.itemId)) continue;
-        writes.push({ itemId: cell.itemId, value: '' });
-        cellsCleared++;
+    existingRows.forEach((row, r) => {
+      if (r >= grid.length) {
+        // Cells are children of the row, so they go with it — one call, not one per cell.
+        surplusRows.push(row.itemId);
+        return;
       }
-    }
+      for (const cell of ordered(row.cells)) {
+        if (!written.has(cell.itemId)) surplusCells.push(cell.itemId);
+      }
+    });
   }
 
   await runInBatches(
@@ -265,13 +269,26 @@ export async function writeGrid(options: WriteOptions): Promise<WriteResult> {
     (done) => onProgress?.(done, writes.length)
   );
 
+  // Deletes run last: if one fails, the table already reads correctly and the
+  // only residue is an extra row, which a re-paste clears. Running them first
+  // would risk removing structure and then failing to write the replacement.
+  const deletions = [...surplusRows, ...surplusCells];
+  await runInBatches(
+    deletions,
+    async (itemId) => {
+      await run(buildDeleteItemMutation({ itemId, database }));
+    },
+    batchSize
+  );
+
   return {
     mode,
     rows: mode === 'append' ? targetRows : grid.length,
     columns: targetCols,
     rowsCreated,
     cellsCreated,
-    cellsUpdated: writes.length - cellsCleared,
-    cellsCleared,
+    cellsUpdated: writes.length,
+    rowsDeleted: surplusRows.length,
+    cellsDeleted: surplusCells.length,
   };
 }

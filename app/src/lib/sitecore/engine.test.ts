@@ -26,7 +26,9 @@ function fakeTenant(initial: FakeRow[] = []) {
       ? 'create'
       : /mutation UpdateFields/.test(op.query)
         ? 'update'
-        : 'query';
+        : /mutation DeleteItem/.test(op.query)
+          ? 'delete'
+          : 'query';
     ops.push({ kind, op });
 
     if (kind === 'query') {
@@ -54,6 +56,14 @@ function fakeTenant(initial: FakeRow[] = []) {
       return { createItem: { item: { itemId, name } } };
     }
 
+    if (kind === 'delete') {
+      const id = op.variables.itemId as string;
+      const rowIndex = rows.findIndex((r) => r.itemId === id);
+      if (rowIndex >= 0) rows.splice(rowIndex, 1);
+      else for (const r of rows) r.cells = r.cells.filter((c) => c.itemId !== id);
+      return { deleteItem: { successful: true } };
+    }
+
     return { updateItem: { item: { itemId: op.variables.itemId } } };
   };
 
@@ -65,7 +75,10 @@ function fakeTenant(initial: FakeRow[] = []) {
         value: o.op.variables.fieldValue0 as string,
       }));
 
-  return { run, ops, updates, rows };
+  const deleted = () =>
+    ops.filter((o) => o.kind === 'delete').map((o) => o.op.variables.itemId as string);
+
+  return { run, ops, updates, deleted, rows };
 }
 
 const grid = (...rows: string[][]): Grid => rows;
@@ -131,7 +144,9 @@ test('re-pasting the same shape creates nothing and only updates', async () => {
   );
 });
 
-test('replace blanks cells left over from a larger previous table', async () => {
+test('replace deletes the surplus rows of a larger previous table', async () => {
+  // Blanking them was wrong: the items still exist, so the component still
+  // renders them — an empty row on the page rather than no row.
   const existing: FakeRow[] = [
     { itemId: 'r0', name: 'Row-000', cells: [{ itemId: 'r0c0', name: 'Cell-000' }] },
     { itemId: 'r1', name: 'Row-001', cells: [{ itemId: 'r1c0', name: 'Cell-000' }] },
@@ -145,9 +160,12 @@ test('replace blanks cells left over from a larger previous table', async () => 
     ...templates,
   });
 
-  assert.equal(result.cellsCleared, 1);
-  const cleared = t.updates().filter((u) => u.value === '');
-  assert.deepEqual(cleared, [{ itemId: 'r2c0', value: '' }]);
+  assert.equal(result.rowsDeleted, 1);
+  // The row goes as one call; its cells are children and go with it.
+  assert.deepEqual(t.deleted(), ['r2']);
+  assert.equal(t.rows.length, 2);
+  // No cell was blanked instead of removed.
+  assert.equal(t.updates().filter((u) => u.value === '').length, 0);
 });
 
 test('append adds rows after the existing ones and leaves them untouched', async () => {
@@ -166,7 +184,10 @@ test('append adds rows after the existing ones and leaves them untouched', async
 
   assert.equal(result.mode, 'append');
   assert.equal(result.rowsCreated, 1);
-  assert.equal(result.cellsCleared, 0);
+  // Append never removes anything, however small the pasted block is.
+  assert.equal(result.rowsDeleted, 0);
+  assert.equal(result.cellsDeleted, 0);
+  assert.deepEqual(t.deleted(), []);
   // new-1 is the row, new-2 its cell. Only the new row is written; existing
   // content is not rewritten.
   assert.deepEqual(t.updates(), [{ itemId: 'new-2', value: '<p>B</p>' }]);
@@ -295,4 +316,49 @@ test('a missing datasource is reported, not treated as an empty table', async ()
     writeGrid({ ref: { path: '/nope' }, grid: grid(['a']), run, ...templates }),
     /Datasource not found/
   );
+});
+
+test('replace deletes surplus columns from rows it keeps', async () => {
+  // A narrower paste must not leave a trailing column rendering as blank cells.
+  const existing: FakeRow[] = [
+    {
+      itemId: 'r0',
+      name: 'Row-000',
+      cells: [
+        { itemId: 'r0c0', name: 'Cell-000' },
+        { itemId: 'r0c1', name: 'Cell-001' },
+        { itemId: 'r0c2', name: 'Cell-002' },
+      ],
+    },
+  ];
+  const t = fakeTenant(existing);
+  const result = await writeGrid({
+    ref: { itemId: 'ds-1' },
+    grid: grid(['only']),
+    run: t.run,
+    ...templates,
+  });
+
+  assert.equal(result.cellsDeleted, 2);
+  assert.deepEqual(t.deleted(), ['r0c1', 'r0c2']);
+  assert.equal(t.rows[0].cells.length, 1);
+});
+
+test('deletes run after the content writes, never before', async () => {
+  // If a delete fails the table still reads correctly; the reverse order could
+  // remove structure and then fail to write its replacement.
+  const existing: FakeRow[] = [
+    { itemId: 'r0', name: 'Row-000', cells: [{ itemId: 'r0c0', name: 'Cell-000' }] },
+    { itemId: 'r1', name: 'Row-001', cells: [{ itemId: 'r1c0', name: 'Cell-000' }] },
+  ];
+  const t = fakeTenant(existing);
+  await writeGrid({
+    ref: { itemId: 'ds-1' },
+    grid: grid(['x']),
+    run: t.run,
+    ...templates,
+  });
+
+  const kinds = t.ops.map((o) => o.kind);
+  assert.ok(kinds.lastIndexOf('update') < kinds.indexOf('delete'));
 });

@@ -169,6 +169,30 @@ export function buildUpdateFieldsMutation(params: {
   };
 }
 
+/**
+ * Delete an item. Deleting a row takes its cells with it, so surplus rows need
+ * one call each rather than one per cell.
+ *
+ * Defaults to the recycle bin rather than a permanent delete — the same
+ * behaviour a serialization push uses when it removes an orphan, and it leaves
+ * an author a way back from a mistaken paste.
+ */
+export function buildDeleteItemMutation(params: {
+  itemId: string;
+  database: string;
+}): GraphqlOperation {
+  return {
+    query: `
+      mutation DeleteItem($itemId: ID!, $database: String!) {
+        deleteItem(input: { itemId: $itemId, database: $database, permanently: false }) {
+          successful
+        }
+      }
+    `,
+    variables: params,
+  };
+}
+
 /** Normalise a raw/braced GUID to the bare lower-case form the API expects. */
 export function normalizeGuid(id: string): string {
   return id.replace(/[{}]/g, '').toLowerCase();
