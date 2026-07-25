@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620"
+     font-family="system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
+     role="img" aria-label="How the SmartTable installer, your repository, and the paste app connect to Sitecore">
+  <style>
+    .box   { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 1.5; }
+    .box-sc{ fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.5; }
+    .box-app{ fill: #f8fafc; stroke: #1d4ed8; stroke-width: 2; }
+    .inner { fill: #ffffff; stroke: #e2e8f0; stroke-width: 1; }
+    .title { fill: #0f172a; font-size: 16px; font-weight: 600; }
+    .sub   { fill: #64748b; font-size: 12px; }
+    .mono  { fill: #0f172a; font-size: 12.5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .lbl   { fill: #475569; font-size: 12px; }
+    .lbl-a { fill: #1d4ed8; font-size: 12px; font-weight: 500; }
+    .flow  { stroke: #94a3b8; stroke-width: 1.6; fill: none; }
+    .flow-a{ stroke: #1d4ed8; stroke-width: 1.8; fill: none; }
+
+    /* Readable for anyone viewing the post in a dark theme. */
+    @media (prefers-color-scheme: dark) {
+      .box    { fill: #1e293b; stroke: #475569; }
+      .box-sc { fill: #172554; stroke: #3b82f6; }
+      .box-app{ fill: #1e293b; stroke: #60a5fa; }
+      .inner  { fill: #0f172a; stroke: #334155; }
+      .title, .mono { fill: #f1f5f9; }
+      .sub, .lbl { fill: #94a3b8; }
+      .lbl-a  { fill: #93c5fd; }
+      .flow   { stroke: #64748b; }
+      .flow-a { stroke: #60a5fa; }
+    }
+  </style>
+
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/>
+    </marker>
+    <marker id="head-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1d4ed8"/>
+    </marker>
+  </defs>
+
+  <!-- ── Installer ──────────────────────────────────────────────────────── -->
+  <rect class="box" x="40" y="28" width="440" height="66" rx="10"/>
+  <text class="mono"  x="62" y="58">npx sitecore-smarttable init</text>
+  <text class="sub"   x="62" y="78">installer — a file copy, it never talks to Sitecore</text>
+
+  <path class="flow" d="M260 94 L260 138" marker-end="url(#head)"/>
+  <text class="lbl" x="274" y="121">copies two folders into your repo</text>
+
+  <!-- ── Your repo ──────────────────────────────────────────────────────── -->
+  <rect class="box" x="40" y="140" width="480" height="180" rx="10"/>
+  <text class="title" x="62" y="168">Your SitecoreAI repo</text>
+
+  <rect class="inner" x="62" y="184" width="436" height="52" rx="6"/>
+  <text class="mono" x="78" y="206">authoring/items/smarttable/**</text>
+  <text class="sub"  x="78" y="224">templates + rendering</text>
+
+  <rect class="inner" x="62" y="248" width="436" height="52" rx="6"/>
+  <text class="mono" x="78" y="270">src/components/smart-table/**</text>
+  <text class="sub"  x="78" y="288">React component</text>
+
+  <!-- ── Sitecore CM ────────────────────────────────────────────────────── -->
+  <rect class="box-sc" x="640" y="176" width="284" height="62" rx="10"/>
+  <text class="title" x="662" y="204">Sitecore (CM)</text>
+  <text class="sub"   x="662" y="224">templates, rendering, Row/Cell items</text>
+
+  <!-- ── Editing host ───────────────────────────────────────────────────── -->
+  <rect class="box-sc" x="640" y="266" width="284" height="62" rx="10"/>
+  <text class="title" x="662" y="294">Editing host</text>
+  <text class="sub"   x="662" y="314">renders the canvas the author edits</text>
+
+  <!-- repo → Sitecore / editing host -->
+  <path class="flow" d="M520 210 L636 207" marker-end="url(#head)"/>
+  <text class="lbl" x="536" y="200">deploy</text>
+
+  <path class="flow" d="M520 274 L636 292" marker-end="url(#head)"/>
+  <text class="lbl" x="540" y="288">build</text>
+
+  <!-- ── The app ────────────────────────────────────────────────────────── -->
+  <rect class="box-app" x="40" y="404" width="480" height="150" rx="10"/>
+  <text class="title" x="62" y="434">SmartTable app</text>
+  <text class="sub"   x="62" y="454">Next.js — you host it, and register it privately</text>
+  <text class="sub"   x="62" y="480">Runs inside Pages as a Custom Field.</text>
+  <text class="sub"   x="62" y="500">Writes on the signed-in author’s session,</text>
+  <text class="sub"   x="62" y="520">so no application secret exists anywhere.</text>
+
+  <!-- app → Sitecore: routed around the right so it crosses nothing -->
+  <path class="flow-a" d="M520 430 L964 430 L964 207 L928 207" marker-end="url(#head-a)"/>
+  <text class="lbl-a" x="560" y="422">writes items · Authoring API · author’s session</text>
+
+  <!-- app → editing host: canvas refresh -->
+  <path class="flow-a" d="M300 404 L300 366 L782 366 L782 332" marker-end="url(#head-a)"/>
+  <text class="lbl-a" x="470" y="358">pages.reloadCanvas</text>
+
+  <!-- ── Footnote ───────────────────────────────────────────────────────── -->
+  <text class="sub" x="40" y="590">The installer never touches Sitecore; the app never touches your repo.</text>
+  <text class="sub" x="40" y="608">They meet only in Sitecore — kept in agreement by template GUIDs frozen in every install.</text>
+</svg>

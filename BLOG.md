@@ -30,37 +30,7 @@ production, and go easy on it.
 This is the part worth understanding before any code. There are three
 deployables, they run in different places, and nothing links them at build time.
 
-```
-┌──────────────────────────┐
-│  npx sitecore-smarttable │  installer (npm package)
-│         init             │
-└────────────┬─────────────┘
-             │ copies two folders into your repo
-             ▼
-┌─────────────────────────────────────────────────────────┐
-│  Your SitecoreAI repo                                   │
-│                                                         │
-│   authoring/items/smarttable/**   ──deploy──►  Sitecore │
-│      (templates + rendering)                    (CM)    │
-│                                                         │
-│   src/components/smart-table/**   ──build──►   Editing  │
-│      (React component)                          host    │
-└─────────────────────────────────────────────────────────┘
-                                                    ▲
-                     renders the table, and the     │
-                     canvas the author edits in ────┘
-                                                    │
-┌──────────────────────────┐   you deploy this      │
-│  SmartTable app          │   yourself and          │
-│  (Next.js — your host)   │   register it privately │
-│                          │                        │
-│  runs inside Pages ──────┼── writes items ───► Sitecore
-│  as a Custom Field       │   (Authoring API,      │
-│                          │    author's session)   │
-└──────────────────────────┘                        │
-             │                                      │
-             └──── pages.reloadCanvas ──────────────┘
-```
+![How the installer, your repository, and the paste app connect](images/architecture.svg)
 
 The important properties:
 
