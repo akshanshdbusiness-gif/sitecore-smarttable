@@ -9,8 +9,21 @@ its own. QuickTable is that component, packaged so it can be installed rather
 than rebuilt.
 
 ```bash
-npx sitecore-quicktable init
+npx github:akshanshdbusiness-gif/sitecore-quicktable init
 ```
+
+Run it from anywhere inside your XM Cloud repo. If more than one rendering host
+is enabled in `xmcloud.build.json`, name the one you want — the CLI will not
+guess:
+
+```bash
+npx github:akshanshdbusiness-gif/sitecore-quicktable init --host=kit-nextjs-article-starter
+```
+
+It lists the available host names when you omit it.
+
+> Not published to npm yet, so the `github:` prefix is required. Once published,
+> `npx sitecore-quicktable init` will work instead.
 
 ## What it installs
 
@@ -59,18 +72,34 @@ so it compiles in any Content SDK app rather than only the starter kits.
 ## Commands
 
 ```bash
-npx sitecore-quicktable init [--host=<name>] [--force] [--dry-run]
-npx sitecore-quicktable doctor
+npx github:akshanshdbusiness-gif/sitecore-quicktable init [--host=<name>] [--force] [--dry-run]
+npx github:akshanshdbusiness-gif/sitecore-quicktable doctor
 ```
+
+| Option | |
+|---|---|
+| `--host=<name>` | Rendering host from `xmcloud.build.json`. Repeatable, or comma-separated. **Required when more than one host is enabled.** |
+| `--force` | Overwrite an existing install. Without it, `init` skips what is already there. |
+| `--dry-run` | Report what would be written, change nothing. |
 
 Run from anywhere in the repo — the CLI walks up to `xmcloud.build.json`.
 
-`--host` is required when more than one rendering host is enabled. `init` derives
-the items destination from `sitecore.json`'s module globs rather than assuming a
-path, because a `module.json` placed outside those globs is pushed by nothing and
-**fails silently at deploy time**.
+`init` derives the items destination from `sitecore.json`'s module globs rather
+than assuming a path, because a `module.json` placed outside those globs is
+pushed by nothing and **fails silently at deploy time**.
+
+Verified against four repo layouts: head app under `examples/`, under `headapps/`,
+at the repo root, and a non-default module glob.
 
 `doctor` is read-only and exits non-zero on a blocking problem, so it works in CI.
+
+## Requirements
+
+- **Node 20+**
+- An **XM Cloud repo** — `xmcloud.build.json` with an `authoringPath`, and
+  `sitecore.json` with module globs
+- A **Content SDK** head app — the component imports `@sitecore-content-sdk/nextjs`
+- **Tailwind** for styling; without it the table renders correctly but unstyled
 
 ## After installing
 
@@ -78,13 +107,20 @@ path, because a `module.json` placed outside those globs is pushed by nothing an
 1. npm run sitecore-tools:generate-map      # or just start dev
 2. commit + deploy                          # items pushed by the pipeline
 3. publish the site
-4. enable QuickTable on each site           # from the QuickTable app
+4. enable QuickTable on each site           # manual, see below
 ```
 
-Step 4 covers two things the module deliberately does **not** ship: adding the
-rendering to the site's Available Renderings, and creating the
-`/Data/QuickTable Folder` item. Both live in the site's own content tree, so
-serialising them would overwrite the consuming project's items on first push.
+**Step 4, per site**, in Content Editor or Explorer:
+
+- add the QuickTable rendering to the site's **Available Renderings**
+  (`/sitecore/content/<site>/Presentation/Available Renderings/…`)
+- create an item under `/sitecore/content/<site>/Data` using the
+  **QuickTable Folder** template — the rendering's Datasource Location query
+  looks for it, and without it authors get no datasource to pick
+
+Neither ships in the module on purpose: both live in the site's own content tree,
+so serialising them would overwrite the consuming project's items on first push.
+`doctor` cannot verify them either — it only sees the filesystem, not Sitecore.
 
 For a faster dev loop you can skip the deploy in step 2:
 
