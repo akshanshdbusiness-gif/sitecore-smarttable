@@ -1,6 +1,6 @@
 # sitecore-quicktable
 
-A portable table component for Sitecore XM Cloud — Sitecore templates, a rendering,
+A portable table component for SitecoreAI — Sitecore templates, a rendering,
 and a Content SDK React component, installed into any project with one command.
 
 Sitecore ships no table rendering out of the box (headless SXA gives you
@@ -12,15 +12,17 @@ than rebuilt.
 npx github:akshanshdbusiness-gif/sitecore-quicktable init
 ```
 
-Run it from anywhere inside your XM Cloud repo. If more than one rendering host
+Run it from anywhere inside your SitecoreAI repo. If more than one rendering host
 is enabled in `xmcloud.build.json`, name the one you want — the CLI will not
 guess:
 
 ```bash
-npx github:akshanshdbusiness-gif/sitecore-quicktable init --host=kit-nextjs-article-starter
+npx github:akshanshdbusiness-gif/sitecore-quicktable init --host=<your-rendering-host>
 ```
 
-It lists the available host names when you omit it.
+`<your-rendering-host>` is a key under `renderingHosts` in your own
+`xmcloud.build.json`, not a fixed value. Omit the flag and the CLI lists the
+names it found.
 
 > Not published to npm yet, so the `github:` prefix is required. Once published,
 > `npx sitecore-quicktable init` will work instead.
@@ -96,7 +98,7 @@ at the repo root, and a non-default module glob.
 ## Requirements
 
 - **Node 20+**
-- An **XM Cloud repo** — `xmcloud.build.json` with an `authoringPath`, and
+- A **SitecoreAI repo** — `xmcloud.build.json` with an `authoringPath`, and
   `sitecore.json` with module globs
 - A **Content SDK** head app — the component imports `@sitecore-content-sdk/nextjs`
 - **Tailwind** for styling; without it the table renders correctly but unstyled

@@ -4,7 +4,7 @@ import { doctor, init } from '../src/commands.js';
 const [, , command, ...argv] = process.argv;
 
 const USAGE = `
-sitecore-quicktable — install the QuickTable component into an XM Cloud repo
+sitecore-quicktable — install the QuickTable component into a SitecoreAI repo
 
   npx sitecore-quicktable init [options]
   npx sitecore-quicktable doctor

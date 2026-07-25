@@ -17,7 +17,7 @@ function locate() {
   const root = findRepoRoot();
   if (!root) {
     console.error(
-      'Not inside an XM Cloud repo: no xmcloud.build.json found in this directory or any parent.'
+      'Not inside a SitecoreAI repo: no xmcloud.build.json found in this directory or any parent.'
     );
     process.exit(1);
   }
@@ -167,8 +167,11 @@ Next:
 
   3. Publish the site so the templates and rendering reach the delivery layer.
 
-  4. Enable QuickTable on each site (adds the rendering to Available Renderings
-     and creates the /Data/QuickTable Folder item). Do this from the QuickTable
-     app — it is site content, so it deliberately ships with no serialised item.
+  4. Enable QuickTable on each site, in Content Editor:
+       - add the QuickTable rendering to the site's Available Renderings
+       - create an item under /sitecore/content/<site>/Data using the
+         "QuickTable Folder" template
+     Both are site content, so they deliberately ship with no serialised item —
+     including them would overwrite your own items on the first push.
 `);
 }

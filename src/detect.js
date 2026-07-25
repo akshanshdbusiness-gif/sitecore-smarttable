@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 
 /**
- * Everything the CLI needs is discoverable from files an XM Cloud repo already
+ * Everything the CLI needs is discoverable from files a SitecoreAI repo already
  * has — xmcloud.build.json and sitecore.json. Nothing is assumed about the
  * project layout, because the destination that actually works differs per repo:
  * a module.json placed outside sitecore.json's glob is pushed by nothing and
@@ -22,7 +22,7 @@ export function findRepoRoot(start = process.cwd()) {
 
 function readJson(file) {
   try {
-    // XM Cloud config files are frequently saved with a UTF-8 BOM.
+    // SitecoreAI config files are frequently saved with a UTF-8 BOM.
     return JSON.parse(readFileSync(file, 'utf8').replace(/^﻿/, ''));
   } catch {
     return null;
@@ -73,7 +73,7 @@ export function inspect(root) {
   const bases = globs.map(globBase).filter(Boolean);
 
   // Prefer a module glob that sits under authoringPath — that is the one the
-  // XM Cloud deploy pipeline serialises.
+  // SitecoreAI deploy pipeline serialises.
   const preferred =
     bases.find((b) => authoringPath && (b === authoringPath || b.startsWith(authoringPath + '/'))) ??
     bases[0] ??
