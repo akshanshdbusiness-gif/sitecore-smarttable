@@ -52,9 +52,20 @@ export function inspect(root) {
     ? build.authoringPath.replace(/^\.\//, '').replace(/\/$/, '')
     : null;
 
+  // "./", ".", "" and "./apps/web" all appear in the wild. Normalise to a
+  // repo-relative path, where the repo root itself is "." — not "", which would
+  // otherwise read as "no path" and silently drop a single-app repo's only host.
+  const normalizeHostPath = (p) => {
+    const trimmed = String(p ?? '')
+      .replace(/\\/g, '/')
+      .replace(/^\.\//, '')
+      .replace(/\/+$/, '');
+    return trimmed === '' ? '.' : trimmed;
+  };
+
   const hosts = Object.entries(build?.renderingHosts ?? {}).map(([name, cfg]) => ({
     name,
-    path: (cfg?.path ?? '').replace(/^\.\//, '').replace(/\/$/, ''),
+    path: normalizeHostPath(cfg?.path),
     enabled: cfg?.enabled !== false,
   }));
 
