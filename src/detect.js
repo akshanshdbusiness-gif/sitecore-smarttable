@@ -90,8 +90,8 @@ export function inspect(root) {
     hosts,
     moduleGlobs: globs,
     moduleBases: bases,
-    itemsDest: preferred ? join(root, ...preferred.split('/'), 'quicktable') : null,
-    itemsDestRel: preferred ? `${preferred}/quicktable` : null,
+    itemsDest: preferred ? join(root, ...preferred.split('/'), 'smarttable') : null,
+    itemsDestRel: preferred ? `${preferred}/smarttable` : null,
     hasSerializationPlugin,
   };
 }

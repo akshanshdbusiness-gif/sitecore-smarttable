@@ -6,7 +6,7 @@ import { findRepoRoot, inspect, rel, resolveHosts } from './detect.js';
 const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PAYLOAD_ITEMS = join(PKG_ROOT, 'payload', 'items');
 const PAYLOAD_COMPONENT = join(PKG_ROOT, 'payload', 'component');
-const COMPONENT_DIR = join('src', 'components', 'quick-table');
+const COMPONENT_DIR = join('src', 'components', 'smart-table');
 
 const ok = (m) => console.log(`  [32mok[0m    ${m}`);
 const bad = (m) => console.log(`  [31mfail[0m  ${m}`);
@@ -65,24 +65,24 @@ function checks(info) {
 
 export function doctor() {
   const { root, info } = locate();
-  console.log(`\nQuickTable doctor — ${root}\n`);
+  console.log(`\nSmartTable doctor — ${root}\n`);
   const failed = checks(info);
 
-  const itemsInstalled = info.itemsDest && existsSync(join(info.itemsDest, 'quicktable.module.json'));
-  if (itemsInstalled) ok('QuickTable items installed');
-  else warn('QuickTable items not installed yet');
+  const itemsInstalled = info.itemsDest && existsSync(join(info.itemsDest, 'smarttable.module.json'));
+  if (itemsInstalled) ok('SmartTable items installed');
+  else warn('SmartTable items not installed yet');
 
   const withComponent = [];
   for (const h of info.hosts.filter((x) => x.path)) {
     const dir = join(root, ...h.path.split('/'), COMPONENT_DIR);
-    if (existsSync(join(dir, 'QuickTable.tsx'))) withComponent.push(h.name);
+    if (existsSync(join(dir, 'SmartTable.tsx'))) withComponent.push(h.name);
   }
   if (withComponent.length) ok(`component installed in: ${withComponent.join(', ')}`);
-  else warn('QuickTable component not installed in any rendering host');
+  else warn('SmartTable component not installed in any rendering host');
 
   // The two halves must ship together; either one alone renders nothing.
   if (itemsInstalled && !withComponent.length) {
-    bad('items present but no component — QuickTable will render blank in Pages');
+    bad('items present but no component — SmartTable will render blank in Pages');
     failed.push('lockstep');
   }
   if (!itemsInstalled && withComponent.length) {
@@ -103,7 +103,7 @@ export function init(argv) {
     .flatMap((a) => a.slice('--host='.length).split(','))
     .filter(Boolean);
 
-  console.log(`\nQuickTable init — ${root}${dryRun ? '  (dry run)' : ''}\n`);
+  console.log(`\nSmartTable init — ${root}${dryRun ? '  (dry run)' : ''}\n`);
   const failed = checks(info);
   if (failed.length) {
     console.log('\nFix the failures above, then re-run.\n');
@@ -140,7 +140,7 @@ export function init(argv) {
   for (const host of picked) {
     const dest = join(root, ...host.path.split('/'), COMPONENT_DIR);
     const destRel = rel(root, dest);
-    if (existsSync(join(dest, 'QuickTable.tsx')) && !force) {
+    if (existsSync(join(dest, 'SmartTable.tsx')) && !force) {
       warn(`${destRel} already exists — skipping (use --force to overwrite)`);
       continue;
     }
@@ -163,14 +163,14 @@ Next:
        commit + deploy            (normal org path, no CLI auth needed)
      or, for a faster dev loop,
        dotnet tool restore
-       dotnet sitecore ser push -n <env> --include Feature.QuickTable
+       dotnet sitecore ser push -n <env> --include Feature.SmartTable
 
   3. Publish the site so the templates and rendering reach the delivery layer.
 
-  4. Enable QuickTable on each site, in Content Editor:
-       - add the QuickTable rendering to the site's Available Renderings
+  4. Enable SmartTable on each site, in Content Editor:
+       - add the SmartTable rendering to the site's Available Renderings
        - create an item under /sitecore/content/<site>/Data using the
-         "QuickTable Folder" template
+         "SmartTable Folder" template
      Both are site content, so they deliberately ship with no serialised item —
      including them would overwrite your own items on the first push.
 `);

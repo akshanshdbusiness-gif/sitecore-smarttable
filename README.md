@@ -1,15 +1,15 @@
-# sitecore-quicktable
+# sitecore-smarttable
 
 A portable table component for SitecoreAI — Sitecore templates, a rendering,
 and a Content SDK React component, installed into any project with one command.
 
 Sitecore ships no table rendering out of the box (headless SXA gives you
 ColumnSplitter/RowSplitter and RichText, nothing more), so every project builds
-its own. QuickTable is that component, packaged so it can be installed rather
+its own. SmartTable is that component, packaged so it can be installed rather
 than rebuilt.
 
 ```bash
-npx github:akshanshdbusiness-gif/sitecore-quicktable init
+npx github:akshanshdbusiness-gif/sitecore-smarttable init
 ```
 
 Run it from anywhere inside your SitecoreAI repo. If more than one rendering host
@@ -17,7 +17,7 @@ is enabled in `xmcloud.build.json`, name the one you want — the CLI will not
 guess:
 
 ```bash
-npx github:akshanshdbusiness-gif/sitecore-quicktable init --host=<your-rendering-host>
+npx github:akshanshdbusiness-gif/sitecore-smarttable init --host=<your-rendering-host>
 ```
 
 `<your-rendering-host>` is a key under `renderingHosts` in your own
@@ -25,34 +25,34 @@ npx github:akshanshdbusiness-gif/sitecore-quicktable init --host=<your-rendering
 names it found.
 
 > Not published to npm yet, so the `github:` prefix is required. Once published,
-> `npx sitecore-quicktable init` will work instead.
+> `npx sitecore-smarttable init` will work instead.
 
 ## What it installs
 
 | Half | Lands in | How it reaches Sitecore |
 |---|---|---|
-| Items (SCS module) | `<moduleGlob>/quicktable/` | your normal deploy, or `ser push` |
-| React component | `<renderingHost>/src/components/quick-table/` | your normal build |
+| Items (SCS module) | `<moduleGlob>/smarttable/` | your normal deploy, or `ser push` |
+| React component | `<renderingHost>/src/components/smart-table/` | your normal build |
 
-Both halves must be present. Either one alone renders nothing — `quicktable doctor`
+Both halves must be present. Either one alone renders nothing — `smarttable doctor`
 checks for exactly that.
 
 ### Sitecore items
 
 ```
-/sitecore/templates/Feature/QuickTable
-├── QuickTable              title, caption      (datasource; Insert Options → Row)
-├── QuickTableRow                               (Insert Options → Cell)
-├── QuickTableCell          cellContent [Rich Text]
-├── QuickTable Folder                           (datasource container)
-└── Rendering Parameters/QuickTableParameters
+/sitecore/templates/Feature/SmartTable
+├── SmartTable              title, caption      (datasource; Insert Options → Row)
+├── SmartTableRow                               (Insert Options → Cell)
+├── SmartTableCell          cellContent [Rich Text]
+├── SmartTable Folder                           (datasource container)
+└── Rendering Parameters/SmartTableParameters
         firstRowIsHeader · striped · disableRowLines · disableColumnLines
 
-/sitecore/layout/Renderings/Feature/QuickTable  (Json Rendering)
+/sitecore/layout/Renderings/Feature/SmartTable  (Json Rendering)
 ```
 
 Item GUIDs are **frozen** — every install gets the same IDs, which is what lets
-tooling recognise a QuickTable datasource without schema discovery. They live in
+tooling recognise a SmartTable datasource without schema discovery. They live in
 `tools/ids.json`; never regenerate them.
 
 Two deliberate design choices:
@@ -74,8 +74,8 @@ so it compiles in any Content SDK app rather than only the starter kits.
 ## Commands
 
 ```bash
-npx github:akshanshdbusiness-gif/sitecore-quicktable init [--host=<name>] [--force] [--dry-run]
-npx github:akshanshdbusiness-gif/sitecore-quicktable doctor
+npx github:akshanshdbusiness-gif/sitecore-smarttable init [--host=<name>] [--force] [--dry-run]
+npx github:akshanshdbusiness-gif/sitecore-smarttable doctor
 ```
 
 | Option | |
@@ -109,15 +109,15 @@ at the repo root, and a non-default module glob.
 1. npm run sitecore-tools:generate-map      # or just start dev
 2. commit + deploy                          # items pushed by the pipeline
 3. publish the site
-4. enable QuickTable on each site           # manual, see below
+4. enable SmartTable on each site           # manual, see below
 ```
 
 **Step 4, per site**, in Content Editor or Explorer:
 
-- add the QuickTable rendering to the site's **Available Renderings**
+- add the SmartTable rendering to the site's **Available Renderings**
   (`/sitecore/content/<site>/Presentation/Available Renderings/…`)
 - create an item under `/sitecore/content/<site>/Data` using the
-  **QuickTable Folder** template — the rendering's Datasource Location query
+  **SmartTable Folder** template — the rendering's Datasource Location query
   looks for it, and without it authors get no datasource to pick
 
 Neither ships in the module on purpose: both live in the site's own content tree,
@@ -129,7 +129,7 @@ For a faster dev loop you can skip the deploy in step 2:
 ```bash
 dotnet tool restore
 dotnet sitecore cloud login
-dotnet sitecore ser push -n <env> --include Feature.QuickTable
+dotnet sitecore ser push -n <env> --include Feature.SmartTable
 ```
 
 ## Regenerating the items
@@ -145,8 +145,8 @@ reused, so regeneration is stable.
 
 ## Notes
 
-- `allowedPushOperations` is `CreateUpdateAndDelete` on QuickTable's own paths, so
+- `allowedPushOperations` is `CreateUpdateAndDelete` on SmartTable's own paths, so
   a re-push **overwrites local edits** to these templates. Extend by inheriting a
-  new template rather than editing QuickTable's.
+  new template rather than editing SmartTable's.
 - The two halves version together. Installing a newer component against older
   items (or vice versa) is the most likely cause of a blank or malformed table.

@@ -6,10 +6,10 @@
 export default function Home() {
   return (
     <main>
-      <h1>QuickTable</h1>
+      <h1>SmartTable</h1>
       <p className="note">
         This app runs inside Sitecore. Register it as a custom field pointing at{' '}
-        <code>/field</code>, then open a QuickTable datasource to use it.
+        <code>/field</code>, then open a SmartTable datasource to use it.
       </p>
     </main>
   );

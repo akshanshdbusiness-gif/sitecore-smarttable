@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { parseClipboard, type Grid } from '../../../../payload/shared/clipboard';
 import { createRunner, useMarketplaceClient } from '../../lib/marketplace/client';
-import { QUICKTABLE } from '../../lib/quicktable';
+import { SMARTTABLE } from '../../lib/smarttable';
 import { writeGrid, type PasteMode } from '../../lib/sitecore/engine';
 
 type Phase = 'idle' | 'capturing' | 'preview' | 'saving' | 'done' | 'error';
@@ -81,9 +81,9 @@ export default function PasteTable({
         grid: payload,
         mode,
         language,
-        rowTemplateId: QUICKTABLE.rowTemplate,
-        cellTemplateId: QUICKTABLE.cellTemplate,
-        cellField: QUICKTABLE.cellField,
+        rowTemplateId: SMARTTABLE.rowTemplate,
+        cellTemplateId: SMARTTABLE.cellTemplate,
+        cellField: SMARTTABLE.cellField,
         run: createRunner(client),
         onProgress: (done, total) => setProgress(total ? done / total : 1),
       });

@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Generates the QuickTable SCS item payload under payload/items/.
+ * Generates the SmartTable SCS item payload under payload/items/.
  *
  * The emitted YAML is the shipped artifact — this script exists so the item
  * model lives in one readable place and so a field/icon/sortorder change is a
  * one-line edit plus a regen rather than hand-patching 20 files.
  *
  * Item IDs are generated once into tools/ids.json and then FROZEN. Every org
- * that installs QuickTable gets the same GUIDs, which is what lets the
- * Marketplace app identify a QuickTable datasource without schema discovery.
+ * that installs SmartTable gets the same GUIDs, which is what lets the
+ * Marketplace app identify a SmartTable datasource without schema discovery.
  * Never delete ids.json.
  *
  *   node tools/gen-items.mjs
@@ -70,8 +70,8 @@ const F = {
 const TS = '20260724T000000Z';
 const ADMIN = 'sitecore\\admin';
 
-const TPL_ROOT = '/sitecore/templates/Feature/QuickTable';
-const RND_PATH = '/sitecore/layout/Renderings/Feature/QuickTable';
+const TPL_ROOT = '/sitecore/templates/Feature/SmartTable';
+const RND_PATH = '/sitecore/layout/Renderings/Feature/SmartTable';
 
 // ── Frozen ID registry ──────────────────────────────────────────────────────
 const KEYS = [
@@ -169,35 +169,35 @@ function write(relPath, content) {
 
 // ── Model ───────────────────────────────────────────────────────────────────
 const { ids, added } = loadIds();
-const TPL_DIR = 'items/quicktable.templates';
-const RND_DIR = 'items/quicktable.renderings';
+const TPL_DIR = 'items/smarttable.templates';
+const RND_DIR = 'items/smarttable.renderings';
 const written = [];
 
 if (existsSync(OUT)) rmSync(OUT, { recursive: true, force: true });
 
-// module.json — sits at authoring/items/quicktable/ in the consuming repo, so
+// module.json — sits at authoring/items/smarttable/ in the consuming repo, so
 // the starter's "authoring/items/**/*.module.json" glob picks it up unchanged.
-written.push(write('quicktable.module.json', JSON.stringify({
+written.push(write('smarttable.module.json', JSON.stringify({
   $schema: '../../../.sitecore/schemas/ModuleFile.schema.json',
-  namespace: 'Feature.QuickTable',
+  namespace: 'Feature.SmartTable',
   items: {
     includes: [
-      { name: 'quicktable.templates', path: TPL_ROOT, allowedPushOperations: 'CreateUpdateAndDelete' },
-      { name: 'quicktable.renderings', path: RND_PATH, allowedPushOperations: 'CreateUpdateAndDelete' },
+      { name: 'smarttable.templates', path: TPL_ROOT, allowedPushOperations: 'CreateUpdateAndDelete' },
+      { name: 'smarttable.renderings', path: RND_PATH, allowedPushOperations: 'CreateUpdateAndDelete' },
     ],
   },
 }, null, 4) + '\n'));
 
-// 1. /sitecore/templates/Feature/QuickTable  (folder)
-written.push(write(`${TPL_DIR}/QuickTable.yml`, emitItem({
+// 1. /sitecore/templates/Feature/SmartTable  (folder)
+written.push(write(`${TPL_DIR}/SmartTable.yml`, emitItem({
   ids: ids.tplFolder, parent: PARENT.featureTemplates, template: T.templateFolder, path: TPL_ROOT,
   shared: [{ id: F.icon, hint: '__Icon', value: 'office/32x32/table.png' }],
-  displayName: 'QuickTable',
+  displayName: 'SmartTable',
 })));
 
-// 2. QuickTable data template
-written.push(write(`${TPL_DIR}/QuickTable/QuickTable.yml`, emitItem({
-  ids: ids.table, parent: ids.tplFolder.id, template: T.template, path: `${TPL_ROOT}/QuickTable`,
+// 2. SmartTable data template
+written.push(write(`${TPL_DIR}/SmartTable/SmartTable.yml`, emitItem({
+  ids: ids.table, parent: ids.tplFolder.id, template: T.template, path: `${TPL_ROOT}/SmartTable`,
   shared: [
     { id: F.icon, hint: '__Icon', value: 'office/32x32/table.png' },
     { id: F.baseTemplate, hint: '__Base template', value: T.standardTemplate },
@@ -206,15 +206,15 @@ written.push(write(`${TPL_DIR}/QuickTable/QuickTable.yml`, emitItem({
   ],
 })));
 
-written.push(write(`${TPL_DIR}/QuickTable/QuickTable/Content.yml`, emitItem({
-  ids: ids.tableSection, parent: ids.table.id, template: T.section, path: `${TPL_ROOT}/QuickTable/Content`,
+written.push(write(`${TPL_DIR}/SmartTable/SmartTable/Content.yml`, emitItem({
+  ids: ids.tableSection, parent: ids.table.id, template: T.section, path: `${TPL_ROOT}/SmartTable/Content`,
   shared: [{ id: F.sortorder, hint: '__Sortorder', value: 100 }],
 })));
 
 const field = (key, name, parentKey, sectionPath, type, title, sortorder, description) =>
   write(`${TPL_DIR}/${sectionPath}/${name}.yml`, emitItem({
     ids: ids[key], parent: ids[parentKey].id, template: T.field,
-    path: `${TPL_ROOT}/${sectionPath.replace(/^QuickTable\//, '')}/${name}`.replace('//', '/'),
+    path: `${TPL_ROOT}/${sectionPath.replace(/^SmartTable\//, '')}/${name}`.replace('//', '/'),
     shared: [
       { id: F.type, hint: 'Type', value: type },
       { id: F.sortorder, hint: '__Sortorder', value: sortorder },
@@ -225,18 +225,18 @@ const field = (key, name, parentKey, sectionPath, type, title, sortorder, descri
     ],
   }));
 
-written.push(field('fTitle', 'title', 'tableSection', 'QuickTable/QuickTable/Content', 'Single-Line Text', 'Title', 100, 'Optional heading rendered above the table.'));
-written.push(field('fCaption', 'caption', 'tableSection', 'QuickTable/QuickTable/Content', 'Single-Line Text', 'Caption', 200, 'Optional <caption>, read by screen readers.'));
+written.push(field('fTitle', 'title', 'tableSection', 'SmartTable/SmartTable/Content', 'Single-Line Text', 'Title', 100, 'Optional heading rendered above the table.'));
+written.push(field('fCaption', 'caption', 'tableSection', 'SmartTable/SmartTable/Content', 'Single-Line Text', 'Caption', 200, 'Optional <caption>, read by screen readers.'));
 
-// __Standard Values — Insert Options limit children to QuickTableRow
-written.push(write(`${TPL_DIR}/QuickTable/QuickTable/__Standard Values.yml`, emitItem({
-  ids: ids.tableSV, parent: ids.table.id, template: ids.table.id, path: `${TPL_ROOT}/QuickTable/__Standard Values`,
+// __Standard Values — Insert Options limit children to SmartTableRow
+written.push(write(`${TPL_DIR}/SmartTable/SmartTable/__Standard Values.yml`, emitItem({
+  ids: ids.tableSV, parent: ids.table.id, template: ids.table.id, path: `${TPL_ROOT}/SmartTable/__Standard Values`,
   shared: [{ id: F.masters, hint: '__Masters', value: braced(ids.row.id) }],
 })));
 
-// 3. QuickTableRow
-written.push(write(`${TPL_DIR}/QuickTable/QuickTableRow.yml`, emitItem({
-  ids: ids.row, parent: ids.tplFolder.id, template: T.template, path: `${TPL_ROOT}/QuickTableRow`,
+// 3. SmartTableRow
+written.push(write(`${TPL_DIR}/SmartTable/SmartTableRow.yml`, emitItem({
+  ids: ids.row, parent: ids.tplFolder.id, template: T.template, path: `${TPL_ROOT}/SmartTableRow`,
   shared: [
     { id: F.icon, hint: '__Icon', value: 'office/32x32/window.png' },
     { id: F.baseTemplate, hint: '__Base template', value: T.standardTemplate },
@@ -245,14 +245,14 @@ written.push(write(`${TPL_DIR}/QuickTable/QuickTableRow.yml`, emitItem({
   ],
 })));
 
-written.push(write(`${TPL_DIR}/QuickTable/QuickTableRow/__Standard Values.yml`, emitItem({
-  ids: ids.rowSV, parent: ids.row.id, template: ids.row.id, path: `${TPL_ROOT}/QuickTableRow/__Standard Values`,
+written.push(write(`${TPL_DIR}/SmartTable/SmartTableRow/__Standard Values.yml`, emitItem({
+  ids: ids.rowSV, parent: ids.row.id, template: ids.row.id, path: `${TPL_ROOT}/SmartTableRow/__Standard Values`,
   shared: [{ id: F.masters, hint: '__Masters', value: braced(ids.cell.id) }],
 })));
 
-// 4. QuickTableCell
-written.push(write(`${TPL_DIR}/QuickTable/QuickTableCell.yml`, emitItem({
-  ids: ids.cell, parent: ids.tplFolder.id, template: T.template, path: `${TPL_ROOT}/QuickTableCell`,
+// 4. SmartTableCell
+written.push(write(`${TPL_DIR}/SmartTable/SmartTableCell.yml`, emitItem({
+  ids: ids.cell, parent: ids.tplFolder.id, template: T.template, path: `${TPL_ROOT}/SmartTableCell`,
   shared: [
     { id: F.icon, hint: '__Icon', value: 'office/32x32/window_dialog.png' },
     { id: F.baseTemplate, hint: '__Base template', value: T.standardTemplate },
@@ -260,16 +260,16 @@ written.push(write(`${TPL_DIR}/QuickTable/QuickTableCell.yml`, emitItem({
   ],
 })));
 
-written.push(write(`${TPL_DIR}/QuickTable/QuickTableCell/Content.yml`, emitItem({
-  ids: ids.cellSection, parent: ids.cell.id, template: T.section, path: `${TPL_ROOT}/QuickTableCell/Content`,
+written.push(write(`${TPL_DIR}/SmartTable/SmartTableCell/Content.yml`, emitItem({
+  ids: ids.cellSection, parent: ids.cell.id, template: T.section, path: `${TPL_ROOT}/SmartTableCell/Content`,
   shared: [{ id: F.sortorder, hint: '__Sortorder', value: 100 }],
 })));
 
-written.push(field('fCellContent', 'cellContent', 'cellSection', 'QuickTable/QuickTableCell/Content', 'Rich Text', 'Cell Content', 100, 'Cell body. Rich Text so authors can format and link.'));
+written.push(field('fCellContent', 'cellContent', 'cellSection', 'SmartTable/SmartTableCell/Content', 'Rich Text', 'Cell Content', 100, 'Cell body. Rich Text so authors can format and link.'));
 
-// 5. QuickTable Folder — datasource container, targeted by Datasource Location
-written.push(write(`${TPL_DIR}/QuickTable/QuickTable Folder.yml`, emitItem({
-  ids: ids.folderTemplate, parent: ids.tplFolder.id, template: T.template, path: `${TPL_ROOT}/QuickTable Folder`,
+// 5. SmartTable Folder — datasource container, targeted by Datasource Location
+written.push(write(`${TPL_DIR}/SmartTable/SmartTable Folder.yml`, emitItem({
+  ids: ids.folderTemplate, parent: ids.tplFolder.id, template: T.template, path: `${TPL_ROOT}/SmartTable Folder`,
   shared: [
     { id: F.icon, hint: '__Icon', value: 'office/32x32/folder_window.png' },
     { id: F.baseTemplate, hint: '__Base template', value: T.standardTemplate },
@@ -278,9 +278,9 @@ written.push(write(`${TPL_DIR}/QuickTable/QuickTable Folder.yml`, emitItem({
   ],
 })));
 
-written.push(write(`${TPL_DIR}/QuickTable/QuickTable Folder/__Standard Values.yml`, emitItem({
+written.push(write(`${TPL_DIR}/SmartTable/SmartTable Folder/__Standard Values.yml`, emitItem({
   ids: ids.folderTemplateSV, parent: ids.folderTemplate.id, template: ids.folderTemplate.id,
-  path: `${TPL_ROOT}/QuickTable Folder/__Standard Values`,
+  path: `${TPL_ROOT}/SmartTable Folder/__Standard Values`,
   shared: [
     { id: F.icon, hint: '__Icon', value: 'office/32x32/folder_window.png' },
     { id: F.masters, hint: '__Masters', value: braced(ids.table.id) },
@@ -288,7 +288,7 @@ written.push(write(`${TPL_DIR}/QuickTable/QuickTable Folder/__Standard Values.ym
 })));
 
 // 6. Rendering Parameters
-written.push(write(`${TPL_DIR}/QuickTable/Rendering Parameters.yml`, emitItem({
+written.push(write(`${TPL_DIR}/SmartTable/Rendering Parameters.yml`, emitItem({
   ids: ids.paramsFolder, parent: ids.tplFolder.id, template: T.templateFolder,
   path: `${TPL_ROOT}/Rendering Parameters`,
   shared: [
@@ -297,25 +297,25 @@ written.push(write(`${TPL_DIR}/QuickTable/Rendering Parameters.yml`, emitItem({
   ],
 })));
 
-written.push(write(`${TPL_DIR}/QuickTable/Rendering Parameters/QuickTableParameters.yml`, emitItem({
+written.push(write(`${TPL_DIR}/SmartTable/Rendering Parameters/SmartTableParameters.yml`, emitItem({
   ids: ids.params, parent: ids.paramsFolder.id, template: T.template,
-  path: `${TPL_ROOT}/Rendering Parameters/QuickTableParameters`,
+  path: `${TPL_ROOT}/Rendering Parameters/SmartTableParameters`,
   shared: [
     { id: F.icon, hint: '__Icon', value: 'office/32x32/window_dialog.png' },
     { id: F.baseTemplate, hint: '__Base template', value: T.standardTemplate },
   ],
 })));
 
-written.push(write(`${TPL_DIR}/QuickTable/Rendering Parameters/QuickTableParameters/Styling.yml`, emitItem({
+written.push(write(`${TPL_DIR}/SmartTable/Rendering Parameters/SmartTableParameters/Styling.yml`, emitItem({
   ids: ids.paramsSection, parent: ids.params.id, template: T.section,
-  path: `${TPL_ROOT}/Rendering Parameters/QuickTableParameters/Styling`,
+  path: `${TPL_ROOT}/Rendering Parameters/SmartTableParameters/Styling`,
   shared: [{ id: F.sortorder, hint: '__Sortorder', value: 100 }],
 })));
 
 const paramField = (key, name, title, sortorder, description) =>
-  write(`${TPL_DIR}/QuickTable/Rendering Parameters/QuickTableParameters/Styling/${name}.yml`, emitItem({
+  write(`${TPL_DIR}/SmartTable/Rendering Parameters/SmartTableParameters/Styling/${name}.yml`, emitItem({
     ids: ids[key], parent: ids.paramsSection.id, template: T.field,
-    path: `${TPL_ROOT}/Rendering Parameters/QuickTableParameters/Styling/${name}`,
+    path: `${TPL_ROOT}/Rendering Parameters/SmartTableParameters/Styling/${name}`,
     shared: [
       { id: F.type, hint: 'Type', value: 'Checkbox' },
       { id: F.sortorder, hint: '__Sortorder', value: sortorder },
@@ -333,13 +333,13 @@ written.push(paramField('pDisableColumnLines', 'disableColumnLines', 'Disable Co
 
 // 7. Rendering
 // Fields are read via field(name:) on the base Item interface rather than a
-// "... on QuickTable { }" fragment on purpose: an inline fragment needs the
-// QuickTable *type* to exist in the preview Edge schema, and that type only
+// "... on SmartTable { }" fragment on purpose: an inline fragment needs the
+// SmartTable *type* to exist in the preview Edge schema, and that type only
 // appears after the template publishes AND the schema regenerates (which lags
 // behind publish). An unknown type is a GraphQL validation error that fails the
 // entire layout query, 500-ing every page the component sits on. field(name:)
 // has no such dependency and keeps working across model changes.
-const COMPONENT_QUERY = `query QuickTableQuery($datasource: String!, $language: String!) {
+const COMPONENT_QUERY = `query SmartTableQuery($datasource: String!, $language: String!) {
   datasource: item(path: $datasource, language: $language) {
     id
     title: field(name: "title") { jsonValue }
@@ -361,16 +361,16 @@ const COMPONENT_QUERY = `query QuickTableQuery($datasource: String!, $language: 
 }`;
 
 const DATASOURCE_LOCATION =
-  "query:$site/*[@@name='Data']/*[@@templatename='QuickTable Folder']|" +
-  "query:$sharedSites/*[@@name='Data']/*[@@templatename='QuickTable Folder']";
+  "query:$site/*[@@name='Data']/*[@@templatename='SmartTable Folder']|" +
+  "query:$sharedSites/*[@@name='Data']/*[@@templatename='SmartTable Folder']";
 
-written.push(write(`${RND_DIR}/QuickTable.yml`, emitItem({
+written.push(write(`${RND_DIR}/SmartTable.yml`, emitItem({
   ids: ids.rendering, parent: PARENT.featureRenderings, template: T.jsonRendering, path: RND_PATH,
   shared: [
     { id: F.icon, hint: '__Icon', value: 'office/32x32/table.png' },
-    { id: F.componentName, hint: 'componentName', value: 'QuickTable' },
+    { id: F.componentName, hint: 'componentName', value: 'SmartTable' },
     { id: F.componentQuery, hint: 'ComponentQuery', value: COMPONENT_QUERY },
-    { id: F.datasourceTemplate, hint: 'Datasource Template', value: `${TPL_ROOT}/QuickTable` },
+    { id: F.datasourceTemplate, hint: 'Datasource Template', value: `${TPL_ROOT}/SmartTable` },
     { id: F.datasourceLocation, hint: 'Datasource Location', value: DATASOURCE_LOCATION },
     // Parameters Template must be a GUID, not a path. Sitecore parses it with
     // Data.ID during RenderItem for every page containing the rendering, so a
@@ -379,8 +379,8 @@ written.push(write(`${RND_DIR}/QuickTable.yml`, emitItem({
     // (Datasource Template, just above, does accept a path.)
     { id: F.parametersTemplate, hint: 'Parameters Template', value: braced(ids.params.id) },
   ],
-  langFields: [{ id: F.title, hint: 'Title', value: 'QuickTable' }],
-  displayName: 'QuickTable',
+  langFields: [{ id: F.title, hint: 'Title', value: 'SmartTable' }],
+  displayName: 'SmartTable',
 })));
 
 console.log(`${added ? `generated ${added} new frozen ids\n` : ''}wrote ${written.length} files to payload/items/`);

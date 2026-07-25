@@ -1,11 +1,11 @@
 {
-  "name": "sitecore-quicktable",
+  "name": "sitecore-smarttable",
   "version": "0.1.0",
-  "description": "Installs the QuickTable table component (Sitecore templates, rendering and React component) into a SitecoreAI project.",
+  "description": "Installs the SmartTable table component (Sitecore templates, rendering and React component) into a SitecoreAI project.",
   "type": "module",
   "license": "MIT",
   "bin": {
-    "quicktable": "./bin/quicktable.js"
+    "smarttable": "./bin/smarttable.js"
   },
   "files": [
     "bin",

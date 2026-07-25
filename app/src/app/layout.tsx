@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata = {
-  title: 'QuickTable',
+  title: 'SmartTable',
   description: 'Paste tables from Excel or the web into Sitecore.',
 };
 

@@ -1,0 +1,18 @@
+{
+    "$schema": "../../../.sitecore/schemas/ModuleFile.schema.json",
+    "namespace": "Feature.SmartTable",
+    "items": {
+        "includes": [
+            {
+                "name": "smarttable.templates",
+                "path": "/sitecore/templates/Feature/SmartTable",
+                "allowedPushOperations": "CreateUpdateAndDelete"
+            },
+            {
+                "name": "smarttable.renderings",
+                "path": "/sitecore/layout/Renderings/Feature/SmartTable",
+                "allowedPushOperations": "CreateUpdateAndDelete"
+            }
+        ]
+    }
+}

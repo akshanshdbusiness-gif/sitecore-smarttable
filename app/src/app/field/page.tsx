@@ -45,9 +45,9 @@ export default function FieldPage() {
   if (!datasourceId) {
     return (
       <main>
-        <h1>QuickTable</h1>
+        <h1>SmartTable</h1>
         <p className="note">
-          Waiting for the item context. Open this from a QuickTable datasource in
+          Waiting for the item context. Open this from a SmartTable datasource in
           Sitecore.
         </p>
       </main>
@@ -56,7 +56,7 @@ export default function FieldPage() {
 
   return (
     <main>
-      <h1>QuickTable</h1>
+      <h1>SmartTable</h1>
       <p className="note">Paste a table from Excel or a web page.</p>
       <PasteTable datasourceId={datasourceId} language={language} hasExistingContent />
     </main>

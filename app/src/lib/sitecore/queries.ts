@@ -1,5 +1,5 @@
 /**
- * Authoring & Management API operations for QuickTable.
+ * Authoring & Management API operations for SmartTable.
  *
  * Shapes follow the ones proven against a real tenant in the sibling
  * add-items-to-multilist-field app: `createItem` takes a `fields` input and
@@ -40,7 +40,7 @@ export function buildGetTableQuery(params: {
 }): GraphqlOperation {
   return {
     query: `
-      query GetQuickTable($itemId: ID!, $database: String!, $language: String!) {
+      query GetSmartTable($itemId: ID!, $database: String!, $language: String!) {
         item(where: { itemId: $itemId, database: $database, language: $language }) {
           itemId
           name
@@ -151,7 +151,7 @@ export function normalizeGuid(id: string): string {
   return id.replace(/[{}]/g, '').toLowerCase();
 }
 
-/** Extract the Row/Cell tree from a GetQuickTable response. */
+/** Extract the Row/Cell tree from a GetSmartTable response. */
 export function readTableStructure(data: unknown): RowNode[] {
   const item = (data as { item?: { children?: { nodes?: unknown[] } } } | null)?.item;
   const rows = item?.children?.nodes ?? [];
